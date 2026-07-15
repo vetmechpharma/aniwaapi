@@ -1,0 +1,41 @@
+{
+  "summary": "End-to-end backend + frontend testing of the Unofficial WhatsApp API (Baileys sidecar). All 39 pytest tests pass; full UI flow (login, sessions CRUD, rules CRUD w/ toggle, webhooks CRUD, API keys create/mask/revoke, API Docs + Swagger link, logout) works. As expected, no real WhatsApp connectivity because no phone scans the QR — 404/409 responses from public /api/v1/send/text with a valid API key are treated as PASS (correct behavior).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "CORS middleware", "issue": "allow_origins='*' + allow_credentials=True is invalid per CORS spec — browsers ignore credentials. Currently harmless because frontend & backend share the same origin via ingress, but if the app is ever hosted at a different origin, cookie-auth in the dashboard will silently break. Recommend explicit origin list."},
+      {"endpoint": "/api/auth/logout", "issue": "Endpoint is protected by get_current_user — if the access token is already expired the user cannot logout server-side (401). Not blocking, but noted."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_whatsapp_api.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "(Minor) Tighten CORS: replace '*' with explicit REACT_APP_BACKEND_URL origin when allow_credentials=True.",
+    "(Minor) Consider making /api/auth/logout token-optional so an expired session can still clear cookies."
+  ],
+  "critical_code_review_comments": [
+    "server.py (643 lines) is close to the 700-line limit and mixes auth, sessions proxying, rules, webhooks, keys, stats, public API, and internal callback in one module. Recommend splitting into routers (auth.py, sessions.py, rules.py, webhooks.py, keys.py, internal.py) before adding new features.",
+    "Cookies are set with secure=False and samesite='lax'. For production behind HTTPS this should be secure=True and probably samesite='none' if the frontend is on a different sub-domain.",
+    "No brute-force / rate-limit protection on /api/auth/login. Recommend a lockout after 5 fails (per playbook).",
+    "internal /api/internal/incoming stores raw payload fields with no validation — a malformed payload from the sidecar could poison logs. Consider a Pydantic model.",
+    "_do_send_text logs an outgoing message BEFORE confirming a 2xx from the sidecar — but this is guarded by an HTTPException on 4xx/5xx, so it is OK. Just noting the ordering is defensive."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_whatsapp_api.py (created)",
+    "/app/test_reports/pytest/pytest_results.xml (generated)"
+  ],
+  "success_rate": {"backend": "100% (39/39)", "frontend": "100% (12/12 UI checks)"},
+  "test_credentials": "admin@example.com / admin123 (from /app/memory/test_credentials.md). SIDECAR_TOKEN read from /app/backend/.env.",
+  "seed_data_creation": "None persisted. All tests create TEST_-prefixed resources and clean up after themselves (rules deleted, sessions deleted, api-keys revoked+deleted, webhooks deleted).",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Backend base URL from REACT_APP_BACKEND_URL. Sidecar is on 127.0.0.1:3002 and reachable — /api/health returns {ok:true, sidecar:true}. Full backend regression suite at /app/backend/tests/test_whatsapp_api.py (pytest, 39 tests, 4 sec). Sessions list from the sidecar returns 'id' (not 'sessionId'). Public /api/v1/send/text with a valid key against a session that never scanned a QR returns 404 (session not connected) — treat 404/409 as PASS. Rules/Webhooks pages require an existing session in the sidecar; create one via /api/sessions first before UI-testing those forms. Delete Session uses window.confirm — playwright must attach page.on('dialog', dialog.accept()) or the delete is silently cancelled.",
+  "rca_of_the_issue": "No blocking bugs found. During UI testing the Session Delete initially appeared to fail — RCA: the frontend uses window.confirm() which returns false unless the test explicitly accepts the dialog. Fixing the test (page.on('dialog', ...accept())) confirmed delete works. Not a product bug."
+}
