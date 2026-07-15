@@ -1,0 +1,121 @@
+{
+  "theme_and_context": {
+    "app_type": "Developer Dashboard / Admin Panel (API Server)",
+    "emotional_tone": "Retro-Brutalist, Technical, Objective, Terminal-inspired",
+    "theme_preference": "Dark Mode Only (True Black)",
+    "design_archetype": "Swiss & High-Contrast with Brutalist Dark Mode adjustments (Archetype 4 Variant)"
+  },
+  "typography": {
+    "strategy": "High-contrast geometric sans + technical monospace for data density and developer aesthetic.",
+    "fonts": {
+      "headings": "'IBM Plex Sans', sans-serif",
+      "body": "'IBM Plex Sans', sans-serif",
+      "mono": "'JetBrains Mono', monospace"
+    },
+    "hierarchy": {
+      "h1": "text-4xl md:text-5xl font-semibold tracking-tight text-white",
+      "h2": "text-2xl md:text-3xl font-medium tracking-tight text-white",
+      "h3": "text-xl font-medium text-white",
+      "metric_number": "text-4xl font-bold font-mono tracking-tighter text-white",
+      "body": "text-sm md:text-base text-zinc-300 leading-relaxed",
+      "code_label": "text-xs font-mono uppercase tracking-widest text-zinc-400"
+    }
+  },
+  "colors": {
+    "background": {
+      "page": "#000000",
+      "surface": "#09090B",
+      "surface_hover": "#18181B"
+    },
+    "borders": {
+      "default": "#27272A",
+      "focus": "#00E559"
+    },
+    "text": {
+      "primary": "#FFFFFF",
+      "secondary": "#A1A1AA",
+      "tertiary": "#71717A"
+    },
+    "accents": {
+      "primary": "#00E559",
+      "primary_hover": "#00C24B",
+      "primary_foreground": "#000000",
+      "destructive": "#FF3333",
+      "destructive_foreground": "#FFFFFF",
+      "warning": "#FFB800",
+      "info": "#3388FF"
+    }
+  },
+  "spacing_and_layout": {
+    "container_padding": "p-6 md:p-10",
+    "grid_system": "Bento Grid Protocol (High Density Mode B) for dashboards. Use grid-cols-1 md:grid-cols-2 lg:grid-cols-4.",
+    "gap": "gap-4 md:gap-6",
+    "sidebar_width": "w-64",
+    "alignment": "Strict left-alignment for all data, tables, and forms. Center alignment ONLY for login box."
+  },
+  "surface_strategies": {
+    "cards": "Borderless or 1px solid #27272A borders. Strictly NO border-radius (rounded-none). Background #09090B.",
+    "hover_effects": "Neo-brutalist hover: translate-x-[-2px] translate-y-[-2px] shadow-[4px_4px_0px_0px_#00E559].",
+    "headers": "Solid black background #000000 with 1px bottom border #27272A. No glassmorphism (keep it terminal-sharp)."
+  },
+  "components": {
+    "buttons": {
+      "primary": "rounded-none bg-[#00E559] text-black font-semibold font-mono uppercase tracking-wider hover:bg-[#00C24B] transition-transform active:scale-95 px-6 py-3",
+      "secondary": "rounded-none bg-transparent border border-[#27272A] text-white hover:border-[#00E559] hover:text-[#00E559] transition-colors px-6 py-3"
+    },
+    "inputs": {
+      "default": "rounded-none bg-[#09090B] border border-[#27272A] text-white focus:border-[#00E559] focus:ring-1 focus:ring-[#00E559] transition-all px-4 py-2 font-mono text-sm"
+    },
+    "tables": {
+      "style": "Dense, compact rows. 1px border-b border-[#27272A]. Headers in font-mono text-xs uppercase text-zinc-500. Row hover bg-[#18181B]."
+    },
+    "status_pips": {
+      "connected": "w-2 h-2 rounded-full bg-[#00E559] shadow-[0_0_8px_rgba(0,229,89,0.5)] inline-block",
+      "disconnected": "w-2 h-2 rounded-full bg-[#FF3333] shadow-[0_0_8px_rgba(255,51,51,0.5)] inline-block"
+    },
+    "shadcn_overrides": "Remove all 'rounded-md', 'rounded-lg', etc. Force 'rounded-none'. Remove soft drop shadows, replace with hard offset shadows if elevated."
+  },
+  "motion_and_interactions": {
+    "transitions": "Snappy and mechanical. Use transition-colors duration-150 ease-linear. No slow/bouncy easings.",
+    "loaders": "ASCII spinners or stark monospace text loaders (e.g., 'CONNECTING... [|||||   ]')."
+  },
+  "assets_and_icons": {
+    "library": "Phosphor Icons (@phosphor-icons/react) with weight='regular' or 'bold'. No duotone for brutalist.",
+    "usage": "Use icons sparingly. Rely more on typography, color coding, and spacing."
+  },
+  "image_urls": {
+    "admin_avatar": {
+      "url": "https://images.unsplash.com/photo-1740252117044-2af197eea287?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NTN8MHwxfHNlYXJjaHwxfHxkZXZlbG9wZXIlMjBwcm9mZXNzaW9uYWwlMjBhdmF0YXJ8ZW58MHx8fHwxNzg0MTQ3ODcyfDA&ixlib=rb-4.1.0&q=85",
+      "description": "Professional developer avatar for admin profile picture.",
+      "placement": "Top right header or bottom of sidebar."
+    },
+    "login_background": {
+      "url": "https://images.unsplash.com/photo-1761599821310-da0d6356b4f3?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA8Mzl8MHwxfHNlYXJjaHwyfHxhYnN0cmFjdCUyMGRhcmslMjB0ZWNobm9sb2d5JTIwbWF0cml4JTIwZ3JlZW58ZW58MHx8fHwxNzg0MTQ3ODcyfDA&ixlib=rb-4.1.0&q=85",
+      "description": "Abstract green digital pattern with vertical lines.",
+      "placement": "Left half of the login screen or subtle background overlay with very low opacity (10%)."
+    }
+  },
+  "pages_and_views": {
+    "layout_shell": {
+      "sidebar": "Fixed left sidebar (w-64). Solid black. Mono-font navigation links with hover states.",
+      "header": "Top bar for breadcrumbs, connection status global indicator, and admin profile."
+    },
+    "dashboard_home": "4-column metric cards at top (JetBrains Mono for numbers). Active rules and recent webhooks in a 2-column grid below.",
+    "whatsapp_sessions": "Grid of session cards. If no session, show a brutalist dashed-border empty state with 'CREATE NEW SESSION' CTA.",
+    "send_playground": "Two-pane view. Left: Form inputs. Right: Terminal-like black box for JSON response/logs.",
+    "message_logs": "Full-width data table. Mono font for timestamps and JIDs. Red/Green text for incoming/outgoing arrows.",
+    "api_docs": "Embedded swagger or custom clean markdown-style typography layout with sticky right sidebar for endpoints."
+  },
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "DO NOT use generic rounded corners. This is a retro-brutalist tech dashboard. Everything must be sharp (rounded-none).",
+    "Use JetBrains Mono for ANY data points, numbers, IDs, API keys, or logs. Use IBM Plex Sans for general reading.",
+    "DO NOT use generic blue or purple gradients. Use True Black (#000000) for the page background and Terminal Green (#00E559) for highlights.",
+    "Apply hard drop shadows for hover states on cards and buttons: shadow-[4px_4px_0px_0px_#00E559].",
+    "Ensure high contrast. Text on black must be crisp white (#FFFFFF) or light zinc (#A1A1AA).",
+    "All interactive elements MUST include data-testid attributes for testing.",
+    "Use Phosphor Icons instead of Lucide to match the sharp technical aesthetic.",
+    "Shadcn components MUST be customized in tailwind classes to remove radius and soft shadows.",
+    "For the API keys section, blur the key by default and show it only when a 'Reveal' icon is clicked, using monospace font.",
+    "Toasts must use Sonner with dark mode forced and a sharp 0-radius border."
+  ]
+}
