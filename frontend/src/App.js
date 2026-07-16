@@ -16,6 +16,7 @@ import ResetPassword from "@/pages/ResetPassword";
 
 // App
 import DashboardLayout from "@/components/DashboardLayout";
+import AdminLayout from "@/components/AdminLayout";
 import Overview from "@/pages/Overview";
 import Sessions from "@/pages/Sessions";
 import Send from "@/pages/Send";
@@ -33,6 +34,8 @@ import AdminPlans from "@/pages/admin/AdminPlans";
 import AdminPayments from "@/pages/admin/AdminPayments";
 import AdminSettings from "@/pages/admin/AdminSettings";
 import AdminMessages from "@/pages/admin/AdminMessages";
+import AdminSmtp from "@/pages/admin/AdminSmtp";
+import AdminSendMessage from "@/pages/admin/AdminSendMessage";
 
 function Loader() {
   return (
@@ -100,13 +103,15 @@ function App() {
             <Route path="billing" element={<Billing />} />
           </Route>
 
-          {/* Admin panel (also uses DashboardLayout) */}
-          <Route path="/admin" element={<AdminOnly><DashboardLayout /></AdminOnly>}>
+          {/* Admin panel — uses its own light-theme layout */}
+          <Route path="/admin" element={<AdminOnly><AdminLayout /></AdminOnly>}>
             <Route index element={<AdminOverview />} />
             <Route path="users" element={<AdminUsers />} />
             <Route path="plans" element={<AdminPlans />} />
             <Route path="payments" element={<AdminPayments />} />
             <Route path="messages" element={<AdminMessages />} />
+            <Route path="send" element={<AdminSendMessage />} />
+            <Route path="smtp" element={<AdminSmtp />} />
             <Route path="settings" element={<AdminSettings />} />
           </Route>
 

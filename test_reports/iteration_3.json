@@ -1,0 +1,47 @@
+{
+  "summary": "Full backend + frontend test of iteration-3 admin panel (user CRUD, features/limits, admin change-password, admin send-text 404 path, SMTP config get/put/masking, OTP forgot-password flow read from db.password_resets, and per-user feature-flag enforcement on /api/send/text). 21/21 pytest tests pass. Frontend flows verified: /login → /admin light-theme shell, full sidebar, change-password-modal, add/edit/features/setpw modals on /admin/users, /admin/smtp save + test-send (gracefully fails with 'name or service not known' on smtp.example.com), /admin/send session picker + disabled submit, /forgot-password step-1 → step-2 transition, and regression admin login.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "GET /api/health", "issue": "version now '2.0.0' — iteration-2 test suite (test_iteration2.py::test_health_v1_1) asserts '1.1.0' and will fail. Update the pinned version or the test."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "AdminUsers 'Add User' modal", "issues": ["'Phone' input has no data-testid (only new-email/new-password/new-name/new-role/new-status/new-plan/new-save). All other required inputs have testids — phone should too."]},
+      {"screen": "AdminUsers 'Add User' modal (or Plan select)", "issues": ["React hydration warning: '<span> cannot be a child of <option>' — inspect the plan/status <select><option> render. Non-blocking."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration3.py",
+    "/app/test_reports/pytest/iteration3_results.xml"
+  ],
+  "action_items": [
+    "(Optional, minor) Add data-testid='new-phone' to the Phone input in AdminUsers 'Add User' modal for E2E testability.",
+    "(Optional, minor) Fix the hydration warning in the users page (span nested inside <option>).",
+    "(Optional) Reconcile /api/health version — either bump the earlier iteration-2 test to '2.0.0' or keep the version at '1.1.0'. Currently returns '2.0.0'."
+  ],
+  "critical_code_review_comments": [
+    "saas.py is now 1040 lines — well over the 700-line soft limit. Split into routers: admin_users.py, admin_smtp.py, admin_send.py, admin_plans.py, admin_payments.py, auth_public.py (register + otp). Same recommendation was made in iteration_1.",
+    "email_service.send_email swallows all SMTP exceptions into {'ok':False,'error':str(e)} — good, but the admin send-text endpoint (POST /api/admin/send/text) still calls httpx directly on WA_SIDECAR_URL without wrapping and will 5xx on network errors; catch httpx.RequestError → 502.",
+    "GET /api/admin/settings/smtp masks the password with bullets, but PUT /api/admin/settings/smtp will overwrite with an empty string only if the client posts an empty string (correctly preserved). However if a bad client re-posts the masked bullets, they will be saved as the real password. Consider rejecting a payload where password consists solely of '•' characters.",
+    "forgot_password intentionally never returns whether the email exists (good), but ALSO stores a password_resets doc only when the user exists. That means a timing side-channel can distinguish existent vs non-existent emails via the small DB write time. Acceptable but noteworthy.",
+    "admin_delete_user does NOT cascade to db.business_hours where the key is 'session_id' (not 'owner_id') — orphan business_hours docs will remain after user deletion.",
+    "AdminSetPasswordIn / AdminChangeOwnPasswordIn only require min_length=6. Playbook typically wants ≥8 + at least one non-alphanumeric. Same for AdminCreateUserIn.password.",
+    "AdminUsers.jsx sends the entire edit form on save including empty strings for phone/company/location, which will overwrite existing values with '' when the user didn't intend to. Only send changed fields.",
+    "AdminSendMessage.jsx: session-card testid uses raw slug — good; but the send-submit is disabled until a card is picked, so the 'empty send shows error' test in the review-request cannot be exercised without at least one session in the DB. Not a bug, just note for future testing."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration3.py (created)",
+    "/app/test_reports/pytest/iteration3_results.xml (generated)"
+  ],
+  "success_rate": {"backend": "100% (21/21)", "frontend": "100% (all documented flows)"},
+  "test_credentials": "admin@example.com / admin123 (from /app/memory/test_credentials.md). SMTP is intentionally NOT configured — OTP was fetched directly from db.password_resets (whatsapp_api_db) as instructed.",
+  "seed_data_creation": "None persisted. All tests create TEST_-prefixed / uitest_-prefixed resources and delete them via the same admin API. A defensive python cleanup of db.users where email starts with 'test_it3_/test_otp_/uitest' was also run at the end and removed 2 stragglers from an initial failed dry-run.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Backend base URL from REACT_APP_BACKEND_URL. Backend regression suites: iteration_1 → /app/backend/tests/test_whatsapp_api.py (39 tests), iteration_2 → test_iteration2.py (uses -n 2 loadscope), iteration_3 → test_iteration3.py (21 tests, ~6s). Note: test_iteration2.py has a hard-coded 'version=1.1.0' assertion that will FAIL because /api/health now returns '2.0.0' — either bump the health version constant back or update that test. To test the OTP flow without SMTP, read the 6-digit OTP directly from db.password_resets (filter email, sort created_at desc). Admin send-text 404 path assumes a fake (user_id, session_slug) pair returns 404 — confirmed working. For the /api/send/text feature-flag enforcement test we exploit that _require_flag runs BEFORE resolve_sidecar_id in _do_send_text, so posting an unknown slug still returns 403 when send_text=false. React hot-reload was used; no supervisor restart was needed.",
+  "rca_of_the_issue": "N/A — no blocking bugs. Two minor testing gotchas discovered: (a) server lowercases user emails, so tests must use lowercase seed emails to match; (b) inside the features modal, the target flag/limit inputs can be outside the viewport at 1920x1080 so Playwright click(force=True) still fails with 'Element is outside of the viewport' — solved by calling scrollIntoView() before click and using page.evaluate to click checkbox."
+}

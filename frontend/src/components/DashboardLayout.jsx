@@ -3,8 +3,7 @@ import { NavLink, Outlet, useNavigate, Link } from "react-router-dom";
 import { api, useAuth } from "@/lib/api";
 import {
   House, Broadcast, PaperPlaneRight, ChatCircleDots, PlugsConnected,
-  ListDashes, Key, BookOpen, SignOut, Terminal, CreditCard,
-  UsersThree, Package, CurrencyDollar, Gear, ShieldCheck, Envelope,
+  ListDashes, Key, BookOpen, SignOut, Terminal, CreditCard, ShieldCheck,
 } from "@phosphor-icons/react";
 
 const userLinks = [
@@ -17,15 +16,6 @@ const userLinks = [
   { to: "/app/keys", icon: Key, label: "API Keys", testid: "nav-keys" },
   { to: "/app/billing", icon: CreditCard, label: "Billing", testid: "nav-billing" },
   { to: "/app/docs", icon: BookOpen, label: "API Docs", testid: "nav-docs" },
-];
-
-const adminLinks = [
-  { to: "/admin", icon: ShieldCheck, label: "Admin Home", testid: "nav-admin-home", end: true },
-  { to: "/admin/users", icon: UsersThree, label: "Users", testid: "nav-admin-users" },
-  { to: "/admin/plans", icon: Package, label: "Plans", testid: "nav-admin-plans" },
-  { to: "/admin/payments", icon: CurrencyDollar, label: "Payments", testid: "nav-admin-payments" },
-  { to: "/admin/messages", icon: Envelope, label: "Messages", testid: "nav-admin-messages" },
-  { to: "/admin/settings", icon: Gear, label: "Settings", testid: "nav-admin-settings" },
 ];
 
 export default function DashboardLayout() {
@@ -47,46 +37,25 @@ export default function DashboardLayout() {
           <Terminal size={22} weight="bold" color="#25D366" />
           <div>
             <div className="mono text-sm font-bold text-white">WA_API</div>
-            <div className="mono text-[10px] text-zinc-500 uppercase tracking-widest">
-              {isAdmin ? "admin panel" : "console v2.0"}
-            </div>
+            <div className="mono text-[10px] text-zinc-500 uppercase tracking-widest">console v2.0</div>
           </div>
         </div>
         <nav className="flex-1 py-4 overflow-y-auto">
-          {!isAdmin && (
-            <>
-              <div className="mono text-[9px] uppercase tracking-widest text-zinc-600 px-4 mb-2">WhatsApp</div>
-              {userLinks.map((l) => (
-                <NavLink key={l.to} to={l.to} end={l.end}
-                  className={({ isActive }) => "wa-sidebar-link " + (isActive ? "active" : "")}
-                  data-testid={l.testid}>
-                  <l.icon size={16} weight="bold" />
-                  {l.label}
-                </NavLink>
-              ))}
-            </>
-          )}
+          <div className="mono text-[9px] uppercase tracking-widest text-zinc-600 px-4 mb-2">WhatsApp</div>
+          {userLinks.map((l) => (
+            <NavLink key={l.to} to={l.to} end={l.end}
+              className={({ isActive }) => "wa-sidebar-link " + (isActive ? "active" : "")}
+              data-testid={l.testid}>
+              <l.icon size={16} weight="bold" />
+              {l.label}
+            </NavLink>
+          ))}
           {isAdmin && (
             <>
-              <div className="mono text-[9px] uppercase tracking-widest text-zinc-600 px-4 mb-2">Admin (SaaS)</div>
-              {adminLinks.map((l) => (
-                <NavLink key={l.to} to={l.to} end={l.end}
-                  className={({ isActive }) => "wa-sidebar-link " + (isActive ? "active" : "")}
-                  data-testid={l.testid}>
-                  <l.icon size={16} weight="bold" />
-                  {l.label}
-                </NavLink>
-              ))}
               <div className="border-t border-zinc-900 my-3"/>
-              <div className="mono text-[9px] uppercase tracking-widest text-zinc-600 px-4 mb-2">WhatsApp (Admin)</div>
-              {userLinks.map((l) => (
-                <NavLink key={l.to} to={l.to} end={l.end}
-                  className={({ isActive }) => "wa-sidebar-link " + (isActive ? "active" : "")}
-                  data-testid={l.testid}>
-                  <l.icon size={16} weight="bold" />
-                  {l.label}
-                </NavLink>
-              ))}
+              <Link to="/admin" className="wa-sidebar-link" data-testid="nav-back-to-admin">
+                <ShieldCheck size={16} weight="bold" color="#25D366"/> Admin Panel
+              </Link>
             </>
           )}
         </nav>

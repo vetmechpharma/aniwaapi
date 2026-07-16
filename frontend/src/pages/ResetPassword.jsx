@@ -23,7 +23,7 @@ export default function ResetPassword() {
     if (pw.length < 6) { setErr("Password must be at least 6 characters"); return; }
     setErr(""); setBusy(true);
     try {
-      await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/auth/reset-password`, { token, password: pw });
+      await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/auth/reset-password-token`, { token, password: pw });
       setOk(true);
       setTimeout(() => nav("/login"), 1800);
     } catch (e2) { setErr(formatError(e2)); }

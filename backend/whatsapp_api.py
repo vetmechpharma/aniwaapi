@@ -90,13 +90,55 @@ async def sidecar_call(method: str, path: str, **kwargs) -> httpx.Response:
 async def get_plan_for_user(user: dict) -> dict:
     """Return plan doc (or default with high limits for admin)."""
     if user.get("role") == "admin":
-        return {"max_sessions": 999, "max_messages_per_day": 10**9, "max_api_keys": 999}
+        return {"max_sessions": 999, "max_messages_per_day": 10**9, "max_api_keys": 999,
+                "max_rules": 999, "max_webhooks": 999, "feature_flags": {}}
     if not user.get("current_plan_id"):
         raise HTTPException(status_code=402, detail="No plan assigned.")
     p = await db.plans.find_one({"_id": ObjectId(user["current_plan_id"])})
     if not p:
         raise HTTPException(status_code=402, detail="Plan not found.")
     return p
+
+# Default feature flags (mirror of saas.DEFAULT_FEATURE_FLAGS to avoid circular import)
+_DEFAULT_FLAGS = {
+    "send_text": True, "send_media": True, "broadcast": True,
+    "rules": True, "webhooks": True, "api_access": True,
+    "multi_session": True, "business_hours": True, "groups": True, "logs": True,
+}
+
+def _effective_flags(user: dict, plan: dict) -> dict:
+    if user.get("role") == "admin":
+        return {k: True for k in _DEFAULT_FLAGS}
+    base = dict(_DEFAULT_FLAGS)
+    pf = plan.get("feature_flags") or {}
+    if isinstance(pf, dict): base.update(pf)
+    uf = user.get("feature_flags") or {}
+    if isinstance(uf, dict): base.update(uf)
+    return base
+
+def _effective_limits(user: dict, plan: dict) -> dict:
+    if user.get("role") == "admin":
+        return {"max_sessions": 999, "max_messages_per_day": 10**9, "max_api_keys": 999,
+                "max_rules": 999, "max_webhooks": 999}
+    base = {
+        "max_sessions": int(plan.get("max_sessions") or 1),
+        "max_messages_per_day": int(plan.get("max_messages_per_day") or 0),
+        "max_api_keys": int(plan.get("max_api_keys") or 1),
+        "max_rules": int(plan.get("max_rules") or 50),
+        "max_webhooks": int(plan.get("max_webhooks") or 10),
+    }
+    ul = user.get("limits") or {}
+    if isinstance(ul, dict):
+        for k, v in ul.items():
+            if k in base:
+                try: base[k] = int(v)
+                except (TypeError, ValueError): pass
+    return base
+
+def _require_flag(user: dict, plan: dict, flag: str, label: str) -> None:
+    flags = _effective_flags(user, plan)
+    if not flags.get(flag, True):
+        raise HTTPException(status_code=403, detail=f"'{label}' is disabled for your account. Contact admin.")
 
 async def resolve_sidecar_id(owner_id: str, slug: str) -> str:
     """Look up the sidecar_id for a user's session slug."""
@@ -163,12 +205,15 @@ async def create_session(body: CreateSessionIn, user=Depends(require_active_user
     if not re.match(r"^[a-z0-9][a-z0-9\-_]{0,30}$", slug):
         raise HTTPException(status_code=400, detail="Session slug: lowercase, digits, dash, underscore only (max 31 chars).")
 
-    # Enforce plan limit
+    # Enforce plan limit + feature flag (multi_session applies for count>=1)
     plan = await get_plan_for_user(user)
     if user.get("role") != "admin":
         cur = await db.sessions.count_documents({"owner_id": user["id"]})
-        if cur >= int(plan.get("max_sessions", 1)):
-            raise HTTPException(status_code=402, detail=f"Plan limit reached: max {plan['max_sessions']} session(s). Upgrade to add more.")
+        limits = _effective_limits(user, plan)
+        if cur >= 1 and not _effective_flags(user, plan).get("multi_session", True):
+            raise HTTPException(status_code=403, detail="Multiple sessions are disabled for your account.")
+        if cur >= int(limits.get("max_sessions", 1)):
+            raise HTTPException(status_code=402, detail=f"Plan limit reached: max {limits['max_sessions']} session(s). Upgrade to add more.")
 
     # Uniqueness for this owner
     if await db.sessions.find_one({"owner_id": user["id"], "slug": slug}):
@@ -219,6 +264,7 @@ async def pair_session(slug: str, phone_number: str = Form(...), user=Depends(re
 # ---------- Send ----------
 async def _do_send_text(user: dict, slug: str, to: str, text: str) -> dict:
     plan = await get_plan_for_user(user)
+    _require_flag(user, plan, "send_text", "Send text")
     await check_and_increment_usage(user, plan, 1)
     sid = await resolve_sidecar_id(user["id"], slug)
     r = await sidecar_call("POST", f"/sessions/{sid}/send-text", json={"to": to, "text": text})
@@ -258,6 +304,7 @@ async def send_media(session_id: str = Form(...), to: str = Form(...),
                      caption: str = Form(""), media_type: str = Form("image"),
                      file: UploadFile = File(...), user=Depends(require_active_user)):
     plan = await get_plan_for_user(user)
+    _require_flag(user, plan, "send_media", "Send media")
     await check_and_increment_usage(user, plan, 1)
     sid = await resolve_sidecar_id(user["id"], session_id)
     content = await file.read()
@@ -286,6 +333,7 @@ async def send_media(session_id: str = Form(...), to: str = Form(...),
 @router.post("/broadcast")
 async def broadcast_admin(body: BroadcastIn, user=Depends(require_active_user)):
     plan = await get_plan_for_user(user)
+    _require_flag(user, plan, "broadcast", "Broadcast")
     await check_and_increment_usage(user, plan, len(body.recipients))
     sid = await resolve_sidecar_id(user["id"], body.session_id)
     r = await sidecar_call("POST", f"/sessions/{sid}/broadcast",
@@ -333,6 +381,13 @@ async def list_rules(session_id: Optional[str] = None, user=Depends(require_acti
 async def create_rule(body: RuleIn, user=Depends(require_active_user)):
     # Ensure they own the session
     await resolve_sidecar_id(user["id"], body.session_id)
+    plan = await get_plan_for_user(user)
+    _require_flag(user, plan, "rules", "Auto-reply rules")
+    if user.get("role") != "admin":
+        cur = await db.rules.count_documents({"owner_id": user["id"]})
+        lim = _effective_limits(user, plan).get("max_rules", 50)
+        if cur >= lim:
+            raise HTTPException(status_code=402, detail=f"Rule limit reached ({lim}). Upgrade or delete an existing rule.")
     doc = body.model_dump()
     doc["owner_id"] = user["id"]; doc["created_at"] = now_iso()
     res = await db.rules.insert_one(doc)
@@ -400,6 +455,13 @@ async def list_webhooks(user=Depends(require_active_user)):
 @router.post("/webhooks")
 async def create_webhook(body: WebhookIn, user=Depends(require_active_user)):
     await resolve_sidecar_id(user["id"], body.session_id)
+    plan = await get_plan_for_user(user)
+    _require_flag(user, plan, "webhooks", "Webhooks")
+    if user.get("role") != "admin":
+        cur = await db.webhooks.count_documents({"owner_id": user["id"]})
+        lim = _effective_limits(user, plan).get("max_webhooks", 10)
+        if cur >= lim:
+            raise HTTPException(status_code=402, detail=f"Webhook limit reached ({lim}). Upgrade or delete one.")
     doc = body.model_dump()
     doc["owner_id"] = user["id"]; doc["created_at"] = now_iso()
     doc["last_fired_at"] = None; doc["last_status"] = None
@@ -465,10 +527,12 @@ async def list_api_keys(user=Depends(require_active_user)):
 @router.post("/api-keys")
 async def create_api_key(body: ApiKeyCreateIn, user=Depends(require_active_user)):
     plan = await get_plan_for_user(user)
+    _require_flag(user, plan, "api_access", "Public API access")
     if user.get("role") != "admin":
         cur = await db.api_keys.count_documents({"owner_id": user["id"], "revoked": {"$ne": True}})
-        if cur >= int(plan.get("max_api_keys", 1)):
-            raise HTTPException(status_code=402, detail=f"Plan limit reached: max {plan['max_api_keys']} API key(s).")
+        lim = _effective_limits(user, plan).get("max_api_keys", 1)
+        if cur >= lim:
+            raise HTTPException(status_code=402, detail=f"Plan limit reached: max {lim} API key(s).")
     scopes = body.scopes if body.scopes else FULL_SCOPES
     invalid = [s for s in scopes if s not in ALL_SCOPES]
     if invalid:

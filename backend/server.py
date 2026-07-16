@@ -61,6 +61,8 @@ async def startup():
     await db.plans.create_index("sort_order")
     await db.payments.create_index([("user_id", 1), ("created_at", -1)])
     await db.password_resets.create_index("token")
+    await db.password_resets.create_index([("email", 1), ("created_at", -1)])
+    await db.password_resets.create_index([("email", 1), ("otp", 1)])
 
     # Seed admin
     existing = await db.users.find_one({"email": ADMIN_EMAIL})
@@ -91,6 +93,13 @@ async def startup():
 
     # Backfill: existing (non-admin) users default to approved status if missing (legacy)
     await db.users.update_many({"status": {"$exists": False}}, {"$set": {"status": "approved", "role": "user"}})
+    # Backfill: ensure feature_flags & limits keys exist on every user
+    await db.users.update_many({"feature_flags": {"$exists": False}}, {"$set": {"feature_flags": {}}})
+    await db.users.update_many({"limits": {"$exists": False}}, {"$set": {"limits": {}}})
+    # Backfill: ensure plans have feature_flags dict (empty = defaults enabled)
+    await db.plans.update_many({"feature_flags": {"$exists": False}}, {"$set": {"feature_flags": {}}})
+    await db.plans.update_many({"max_rules": {"$exists": False}}, {"$set": {"max_rules": 50}})
+    await db.plans.update_many({"max_webhooks": {"$exists": False}}, {"$set": {"max_webhooks": 10}})
 
     # Seed default plans if none
     if await db.plans.count_documents({}) == 0:
