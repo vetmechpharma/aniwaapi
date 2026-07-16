@@ -28,8 +28,87 @@ r = requests.get("${BASE}/api/v1/sessions",
 print(r.json())`,
     response: `{
   "sessions": [
-    { "id": "primary", "status": "connected", "ready": true, "me": { "id": "9198...@s.whatsapp.net" } }
+    {
+      "id": "primary",
+      "slug": "primary",
+      "status": "connected",     // connected | connecting | reconnecting | qr | pairing | logged_out | disconnected | unknown
+      "connected": true,         // ✅ boolean — use this in your CRM
+      "ready": true,             // legacy alias of "connected"
+      "phone": "919999999999",   // E.164 digits of the WhatsApp number (null if disconnected)
+      "me": { "id": "919999999999:1@s.whatsapp.net", "name": "Your name" },
+      "hasQr": false,
+      "pairingCode": null,
+      "lastError": null,
+      "sidecar_reachable": true,
+      "checked_at": "2026-02-14T10:22:31.456+00:00"
+    }
   ]
+}`,
+  },
+  {
+    method: "GET",
+    path: "/api/v1/sessions/{slug}",
+    scope: "sessions:read",
+    title: "Get one session's full status (CRM-friendly)",
+    bodyType: "none",
+    query: null,
+    jsonBody: null,
+    curl: `curl -X GET "${BASE}/api/v1/sessions/primary" \\
+  -H "Authorization: Bearer YOUR_API_KEY"`,
+    js: `const r = await fetch("${BASE}/api/v1/sessions/primary", {
+  headers: { Authorization: "Bearer YOUR_API_KEY" },
+});
+const s = await r.json();
+if (s.connected) {
+  console.log("Ready to send from", s.phone);
+} else {
+  console.log("Not connected:", s.status);
+}`,
+    py: `import requests
+r = requests.get("${BASE}/api/v1/sessions/primary",
+    headers={"Authorization": "Bearer YOUR_API_KEY"})
+s = r.json()
+print("connected" if s["connected"] else "offline", "-", s["status"], "-", s.get("phone"))`,
+    response: `{
+  "id": "primary",
+  "slug": "primary",
+  "status": "connected",
+  "connected": true,
+  "ready": true,
+  "phone": "919999999999",
+  "me": { "id": "919999999999:1@s.whatsapp.net", "name": "Your name" },
+  "hasQr": false,
+  "pairingCode": null,
+  "lastError": null,
+  "sidecar_reachable": true,
+  "checked_at": "2026-02-14T10:22:31.456+00:00"
+}`,
+  },
+  {
+    method: "GET",
+    path: "/api/v1/sessions/{slug}/status",
+    scope: "sessions:read",
+    title: "Lightweight status ping (best for CRM polling)",
+    bodyType: "none",
+    query: null,
+    jsonBody: null,
+    curl: `curl -X GET "${BASE}/api/v1/sessions/primary/status" \\
+  -H "Authorization: Bearer YOUR_API_KEY"`,
+    js: `const { connected, status, phone } = await (await fetch(
+  "${BASE}/api/v1/sessions/primary/status",
+  { headers: { Authorization: "Bearer YOUR_API_KEY" } }
+)).json();`,
+    py: `import requests
+data = requests.get("${BASE}/api/v1/sessions/primary/status",
+    headers={"Authorization": "Bearer YOUR_API_KEY"}).json()
+# data == { "connected": True, "status": "connected", "phone": "919...", ... }`,
+    response: `{
+  "id": "primary",
+  "connected": true,
+  "status": "connected",
+  "phone": "919999999999",
+  "sidecar_reachable": true,
+  "checked_at": "2026-02-14T10:22:31.456+00:00"
 }`,
   },
   {

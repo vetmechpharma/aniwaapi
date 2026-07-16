@@ -964,26 +964,43 @@ async def admin_list_user_sessions(user_id: Optional[str] = None, _a=Depends(req
             user_cache[uid] = u or {}
         return user_cache[uid]
     live = {}
+    reachable = False
     try:
         async with httpx.AsyncClient(timeout=5) as c:
             r = await c.get(f"{WA_SIDECAR_URL}/sessions", headers=sidecar_headers())
         if r.status_code < 400:
             live = {s["id"]: s for s in r.json().get("sessions", [])}
+            reachable = True
     except Exception:
-        pass
+        reachable = False
     out = []
     for d in docs:
         uinfo = await _uinfo(d["owner_id"])
         s = live.get(d["sidecar_id"], {})
+        me = s.get("me") if reachable else None
+        # Extract phone from me.id (Baileys returns e.g. "919999999999:1@s.whatsapp.net")
+        phone = None
+        if isinstance(me, dict) and isinstance(me.get("id"), str):
+            raw = me["id"].split("@", 1)[0].split(":", 1)[0]
+            phone = raw or None
+        elif isinstance(me, str):
+            raw = me.split("@", 1)[0].split(":", 1)[0]
+            phone = raw or None
+        status_str = s.get("status") if reachable else "unknown"
+        if reachable and not status_str:
+            status_str = "disconnected"
         out.append({
             "owner_id": d["owner_id"],
             "owner_email": uinfo.get("email"),
             "owner_name": uinfo.get("name"),
             "slug": d["slug"],
             "sidecar_id": d["sidecar_id"],
-            "status": s.get("status", "unknown"),
-            "ready": s.get("ready", False),
-            "me": s.get("me"),
+            "status": status_str,
+            "connected": bool(s.get("ready", False)),
+            "ready": bool(s.get("ready", False)),
+            "phone": phone,
+            "me": me,
+            "sidecar_reachable": reachable,
         })
     return {"sessions": out}
 

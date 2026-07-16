@@ -1,0 +1,35 @@
+{
+  "summary": "Backend retest of CRM connection-status bug on the public /api/v1/sessions* surface. Created a fresh session (crmpeek/crmtest) and API key as admin, then asserted the enriched response shape on all three endpoints. 12/12 pytest assertions pass. Confirmed a REAL connected session in the DB ('test' slug, phone 919486544884) is correctly reported as connected=true/status='connected'/phone populated, while the newly-created unscanned session correctly reports connected=false/status='qr'/phone=null — status is NEVER 'unknown' when the sidecar is reachable. Bug is FIXED.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration4_crm_status.py",
+    "/app/test_reports/pytest/iteration4_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "whatsapp_api.py: `_do_send_media` (lines 335-344) is dead code that ends in `raise RuntimeError('unused')` — the real media path is in `send_media`. Remove the stub to avoid confusion.",
+    "whatsapp_api.py: `_enrich_session` treats `hasQr` as truthy when `qrDataUrl` is present, but keeps `qr`/`qrDataUrl` exposed on the LIST endpoint too — for a CRM polling every N seconds this ships a large base64 blob on every list call. Consider dropping qrDataUrl from the list (`public_list_sessions`) response and keeping it only on the single-session GET.",
+    "public_get_session vs public_session_status duplicate the sidecar-fetch + reachable/live logic. Extract a `_fetch_live(doc)` helper to avoid drift.",
+    "core.require_scope: `if needed_set and not (needed_set & scopes)` allows a key with ANY one of the required scopes. Fine here (sessions:read is the only needed scope), but the current 'one-of' semantics differ from typical 'all-of' scope guards — document this in ApiDocs.jsx.",
+    "saas.py is still 1000+ lines (flagged in iteration_1 and _3). Split into routers.",
+    "public_list_sessions returns {'sessions': []} early when the user has 0 sessions, so an empty account never hits the sidecar (good). But when the sidecar IS unreachable, per-session `sidecar_reachable=false` is emitted while the whole request still returns 200 — a CRM will see status='unknown' and correctly stop polling for sends. This is the intended behaviour and is covered by the enriched shape."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration4_crm_status.py (created)"
+  ],
+  "success_rate": {"backend": "100% (12/12)", "frontend": "not tested — per review request (backend-only)"},
+  "test_credentials": "admin@example.com / admin123 (from /app/memory/test_credentials.md).",
+  "seed_data_creation": "The test fixture creates ONE ephemeral session (slug='crmtest') and ONE API key ('crm-test' + a scoped 'narrow-crm-test'). Both are deleted in the fixture teardown (via DELETE /api/sessions/crmtest, POST /api/api-keys/{id}/revoke, DELETE /api/api-keys/{id}). Verified — no leftover docs in db.sessions or db.api_keys after the run. The pre-existing session 'test' (owned by admin, connected to phone 919486544884) is NOT touched.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Regression file: /app/backend/tests/test_iteration4_crm_status.py — 12 tests, ~5s runtime. Run with: `cd /app && python -m pytest backend/tests/test_iteration4_crm_status.py -v -o addopts=`. Note that /app/backend/pytest.ini forces `-n 2 --dist loadscope` via xdist, so single-file runs must override `-o addopts=` or rely on the parallel default. The enriched schema {id, slug, status, connected, ready, phone, me, hasQr, qr, qrDataUrl, pairingCode, lastError, sidecar_reachable, checked_at} is asserted in the helper `_assert_enriched_shape`. Valid `status` values are: connected|connecting|reconnecting|qr|pairing|logged_out|disconnected|unknown. `unknown` is only allowed when `sidecar_reachable=false`. If future iterations rename/normalise `status` further (e.g. treat 'reconnecting' as 'connecting'), update the VALID_STATUSES / CONNECTED_FALSE_STATUSES sets at the top of the test file.",
+  "rca_of_the_issue": "Original bug: CRM callers of /api/v1/sessions* received only Baileys' internal `status` string plus a `ready` field, so any CRM built to look for `connected` saw `undefined` and treated the session as never-online. Fix (in whatsapp_api.py::_enrich_session): every session doc is now enriched with (a) an explicit `connected` boolean (mirror of Baileys' `ready`), (b) a normalised `status` string that only degrades to 'unknown' when the sidecar itself is unreachable (previously, an empty live dict caused 'unknown' even when the sidecar answered), (c) a parsed E.164 `phone` extracted from `me.id`, and (d) `sidecar_reachable` + `checked_at` for observability. Same helper is used in public_list_sessions, public_get_session, public_session_status, and the dashboard list_sessions/get_session — so /api/sessions (cookie auth) and /api/v1/sessions (Bearer auth) now return the identical shape. Verified live: seeded session shows connected=false/status='qr'; pre-existing 'test' session shows connected=true/status='connected'/phone='919486544884'."
+}
