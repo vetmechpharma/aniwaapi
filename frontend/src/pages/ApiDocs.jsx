@@ -1,81 +1,346 @@
-import React from "react";
+import React, { useState } from "react";
 import { API } from "@/lib/api";
+import { Copy, Check } from "@phosphor-icons/react";
 
 const BASE = API.replace(/\/api$/, "");
 
+// Group endpoints by method / body type so users see all 3 request styles.
 const endpoints = [
+  // ===== GET =====
+  {
+    method: "GET",
+    path: "/api/v1/sessions",
+    scope: "sessions:read",
+    title: "List all sessions and their live status",
+    bodyType: "none",
+    query: null,
+    jsonBody: null,
+    curl: `curl -X GET "${BASE}/api/v1/sessions" \\
+  -H "Authorization: Bearer YOUR_API_KEY"`,
+    js: `const r = await fetch("${BASE}/api/v1/sessions", {
+  method: "GET",
+  headers: { Authorization: "Bearer YOUR_API_KEY" },
+});
+const data = await r.json();`,
+    py: `import requests
+r = requests.get("${BASE}/api/v1/sessions",
+    headers={"Authorization": "Bearer YOUR_API_KEY"})
+print(r.json())`,
+    response: `{
+  "sessions": [
+    { "id": "primary", "status": "connected", "ready": true, "me": { "id": "9198...@s.whatsapp.net" } }
+  ]
+}`,
+  },
+  {
+    method: "GET",
+    path: "/api/v1/sessions/{slug}/groups",
+    scope: "groups:read",
+    title: "List groups a session participates in",
+    bodyType: "none",
+    query: null,
+    jsonBody: null,
+    curl: `curl -X GET "${BASE}/api/v1/sessions/primary/groups" \\
+  -H "Authorization: Bearer YOUR_API_KEY"`,
+    js: `const r = await fetch("${BASE}/api/v1/sessions/primary/groups", {
+  headers: { Authorization: "Bearer YOUR_API_KEY" },
+});`,
+    py: `import requests
+r = requests.get(
+    "${BASE}/api/v1/sessions/primary/groups",
+    headers={"Authorization": "Bearer YOUR_API_KEY"},
+)`,
+    response: `{
+  "groups": [
+    { "id": "12345-67890@g.us", "subject": "Team", "size": 12, "owner": "9198...@s.whatsapp.net" }
+  ]
+}`,
+  },
+  {
+    method: "GET",
+    path: "/api/v1/logs",
+    scope: "logs:read",
+    title: "Read recent messages (in + out) with filters",
+    bodyType: "none",
+    query: [
+      { name: "session_id", type: "string", required: false, desc: "Filter by session slug" },
+      { name: "direction",  type: "string", required: false, desc: "'incoming' or 'outgoing'" },
+      { name: "limit",      type: "int",    required: false, desc: "Max results (1–500, default 100)" },
+    ],
+    jsonBody: null,
+    curl: `curl -X GET "${BASE}/api/v1/logs?session_id=primary&direction=incoming&limit=50" \\
+  -H "Authorization: Bearer YOUR_API_KEY"`,
+    js: `const q = new URLSearchParams({ session_id: "primary", direction: "incoming", limit: "50" });
+const r = await fetch("${BASE}/api/v1/logs?" + q, {
+  headers: { Authorization: "Bearer YOUR_API_KEY" },
+});`,
+    py: `import requests
+r = requests.get("${BASE}/api/v1/logs",
+    params={"session_id": "primary", "direction": "incoming", "limit": 50},
+    headers={"Authorization": "Bearer YOUR_API_KEY"})`,
+    response: `{
+  "messages": [
+    { "id": "…", "session_id": "primary", "direction": "incoming", "remote_jid": "9198…@s.whatsapp.net",
+      "text": "hi", "media_type": null, "status": "delivered", "timestamp": 1735000000 }
+  ]
+}`,
+  },
+
+  // ===== POST + application/json =====
   {
     method: "POST",
     path: "/api/v1/send/text",
-    title: "Send text message",
-    body: `{
-  "session_id": "primary",
-  "to": "14155551234",
-  "text": "Hello from my API"
-}`,
-    curl: (base) => `curl -X POST "${base}/api/v1/send/text" \\
+    scope: "send:text",
+    title: "Send a text message",
+    bodyType: "json",
+    query: null,
+    jsonBody: {
+      session_id: "primary",
+      to: "919812345678",
+      text: "Hello from my server!",
+    },
+    curl: `curl -X POST "${BASE}/api/v1/send/text" \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
-  -d '{"session_id":"primary","to":"14155551234","text":"Hello"}'`,
+  -d '{
+    "session_id": "primary",
+    "to": "919812345678",
+    "text": "Hello from my server!"
+  }'`,
+    js: `const r = await fetch("${BASE}/api/v1/send/text", {
+  method: "POST",
+  headers: {
+    Authorization: "Bearer YOUR_API_KEY",
+    "Content-Type": "application/json",
   },
-  {
-    method: "POST",
-    path: "/api/v1/send/media",
-    title: "Send media (multipart)",
-    body: `Multipart form:
-  session_id: primary
-  to: 14155551234
-  media_type: image | video | audio | document
-  caption: (optional)
-  file: <binary>`,
-    curl: (base) => `curl -X POST "${base}/api/v1/send/media" \\
-  -H "Authorization: Bearer YOUR_API_KEY" \\
-  -F "session_id=primary" \\
-  -F "to=14155551234" \\
-  -F "media_type=image" \\
-  -F "caption=Hello" \\
-  -F "file=@/path/to/image.jpg"`,
+  body: JSON.stringify({
+    session_id: "primary",
+    to: "919812345678",
+    text: "Hello from my server!",
+  }),
+});
+const data = await r.json();`,
+    py: `import requests
+r = requests.post("${BASE}/api/v1/send/text",
+    headers={"Authorization": "Bearer YOUR_API_KEY"},
+    json={"session_id": "primary", "to": "919812345678", "text": "Hello!"})
+print(r.json())`,
+    response: `{ "ok": true, "messageId": "3EB0...", "jid": "919812345678@s.whatsapp.net" }`,
   },
   {
     method: "POST",
     path: "/api/v1/broadcast",
-    title: "Broadcast text to multiple recipients",
-    body: `{
-  "session_id": "primary",
-  "recipients": ["14155551234", "14155559999"],
-  "text": "Announcement"
-}`,
-    curl: (base) => `curl -X POST "${base}/api/v1/broadcast" \\
+    scope: "broadcast",
+    title: "Send the same text to multiple recipients (throttled server-side)",
+    bodyType: "json",
+    query: null,
+    jsonBody: {
+      session_id: "primary",
+      recipients: ["919812345678", "919887776655"],
+      text: "Announcement!",
+    },
+    curl: `curl -X POST "${BASE}/api/v1/broadcast" \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
-  -d '{"session_id":"primary","recipients":["14155551234"],"text":"Hi"}'`,
+  -d '{
+    "session_id": "primary",
+    "recipients": ["919812345678", "919887776655"],
+    "text": "Announcement!"
+  }'`,
+    js: `const r = await fetch("${BASE}/api/v1/broadcast", {
+  method: "POST",
+  headers: { Authorization: "Bearer YOUR_API_KEY", "Content-Type": "application/json" },
+  body: JSON.stringify({
+    session_id: "primary",
+    recipients: ["919812345678", "919887776655"],
+    text: "Announcement!",
+  }),
+});`,
+    py: `import requests
+r = requests.post("${BASE}/api/v1/broadcast",
+    headers={"Authorization": "Bearer YOUR_API_KEY"},
+    json={"session_id": "primary",
+          "recipients": ["919812345678", "919887776655"],
+          "text": "Announcement!"})`,
+    response: `{
+  "ok": true,
+  "results": [
+    { "to": "919812345678", "ok": true, "messageId": "…" },
+    { "to": "919887776655", "ok": true, "messageId": "…" }
+  ]
+}`,
   },
+
+  // ===== POST + multipart/form-data =====
   {
-    method: "GET",
-    path: "/api/v1/sessions",
-    title: "List sessions and connection status",
-    body: "-- no body --",
-    curl: (base) => `curl "${base}/api/v1/sessions" \\
-  -H "Authorization: Bearer YOUR_API_KEY"`,
-  },
-  {
-    method: "GET",
-    path: "/api/v1/sessions/{sid}/groups",
-    title: "List groups for a session",
-    body: "-- no body --",
-    curl: (base) => `curl "${base}/api/v1/sessions/primary/groups" \\
-  -H "Authorization: Bearer YOUR_API_KEY"`,
+    method: "POST",
+    path: "/api/v1/send/media",
+    scope: "send:media",
+    title: "Send an image / video / audio / document (multipart upload)",
+    bodyType: "form",
+    query: null,
+    jsonBody: null,
+    formFields: [
+      { name: "session_id", type: "text", required: true, desc: "Session slug (e.g. `primary`)" },
+      { name: "to",         type: "text", required: true, desc: "Phone number or full JID" },
+      { name: "media_type", type: "text", required: true, desc: "`image` | `video` | `audio` | `document`" },
+      { name: "caption",    type: "text", required: false, desc: "Optional caption (text under media)" },
+      { name: "file",       type: "file", required: true, desc: "Binary file, max 50 MB" },
+    ],
+    curl: `curl -X POST "${BASE}/api/v1/send/media" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -F "session_id=primary" \\
+  -F "to=919812345678" \\
+  -F "media_type=image" \\
+  -F "caption=Look at this" \\
+  -F "file=@/path/to/photo.jpg"`,
+    js: `const fd = new FormData();
+fd.append("session_id", "primary");
+fd.append("to", "919812345678");
+fd.append("media_type", "image");
+fd.append("caption", "Look at this");
+fd.append("file", fileInput.files[0]);   // from an <input type="file">
+
+const r = await fetch("${BASE}/api/v1/send/media", {
+  method: "POST",
+  headers: { Authorization: "Bearer YOUR_API_KEY" },  // DO NOT set Content-Type — browser adds boundary
+  body: fd,
+});`,
+    py: `import requests
+files = {"file": open("/path/to/photo.jpg", "rb")}
+data  = {"session_id": "primary", "to": "919812345678",
+         "media_type": "image", "caption": "Look at this"}
+r = requests.post("${BASE}/api/v1/send/media",
+    headers={"Authorization": "Bearer YOUR_API_KEY"},
+    data=data, files=files)`,
+    response: `{ "ok": true, "messageId": "3EB0...", "jid": "919812345678@s.whatsapp.net" }`,
   },
 ];
+
+function MethodBadge({ m }) {
+  const style = m === "GET"
+    ? { color: "#128C7E", background: "#F0FDF4", border: "1px solid #BBF7D0" }
+    : { color: "#052E1B", background: "#25D366", border: "1px solid #25D366" };
+  return (
+    <span style={style} className="inline-block font-mono text-[11px] font-bold tracking-wider px-2.5 py-1 rounded">
+      {m}
+    </span>
+  );
+}
+function BodyTypeBadge({ t }) {
+  const label = { json: "application/json", form: "multipart/form-data", none: "no body" }[t];
+  const cls = t === "none" ? "wa-badge" : (t === "json" ? "wa-badge wa-badge-blue" : "wa-badge wa-badge-yellow");
+  return <span className={cls}>{label}</span>;
+}
+
+function CopyBlock({ text, testid }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <div className="relative group">
+      <pre className="terminal !text-[12px] pr-12" data-testid={testid}>{text}</pre>
+      <button
+        onClick={async () => { await navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 1200); }}
+        className="wa-btn wa-btn-secondary absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+        title="Copy"
+      >
+        {copied ? <><Check size={12}/> COPIED</> : <><Copy size={12}/> COPY</>}
+      </button>
+    </div>
+  );
+}
+
+function EndpointCard({ e }) {
+  const [tab, setTab] = useState("curl");
+  const code = e[tab];
+  return (
+    <div className="wa-card p-6 mb-6" data-testid={`endpoint-${e.method}-${e.path}`}>
+      <div className="flex items-center gap-3 mb-2 flex-wrap">
+        <MethodBadge m={e.method}/>
+        <code className="mono text-white text-sm">{e.path}</code>
+        <BodyTypeBadge t={e.bodyType}/>
+        <span className="wa-badge">scope: <span className="text-[#25D366] ml-1">{e.scope}</span></span>
+      </div>
+      <p className="text-zinc-300 text-sm mb-4">{e.title}</p>
+
+      {/* Parameters */}
+      {e.query && (
+        <div className="mb-4">
+          <div className="mono text-[10px] uppercase text-zinc-500 mb-2">QUERY PARAMS</div>
+          <table className="wa-table text-xs">
+            <tbody>
+              {e.query.map((q) => (
+                <tr key={q.name}>
+                  <td className="mono text-[#25D366]">{q.name}</td>
+                  <td className="mono text-zinc-400">{q.type}</td>
+                  <td className="mono text-zinc-500">{q.required ? "required" : "optional"}</td>
+                  <td className="text-zinc-300">{q.desc}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {e.bodyType === "json" && e.jsonBody && (
+        <div className="mb-4">
+          <div className="mono text-[10px] uppercase text-zinc-500 mb-2">
+            JSON BODY <span className="text-zinc-600">(Content-Type: application/json)</span>
+          </div>
+          <CopyBlock text={JSON.stringify(e.jsonBody, null, 2)} testid={`json-${e.path}`}/>
+        </div>
+      )}
+
+      {e.bodyType === "form" && e.formFields && (
+        <div className="mb-4">
+          <div className="mono text-[10px] uppercase text-zinc-500 mb-2">
+            FORM FIELDS <span className="text-zinc-600">(Content-Type: multipart/form-data)</span>
+          </div>
+          <table className="wa-table text-xs">
+            <tbody>
+              {e.formFields.map((f) => (
+                <tr key={f.name}>
+                  <td className="mono text-[#25D366]">{f.name}</td>
+                  <td className="mono text-zinc-400">{f.type}</td>
+                  <td className="mono text-zinc-500">{f.required ? "required" : "optional"}</td>
+                  <td className="text-zinc-300" dangerouslySetInnerHTML={{ __html: f.desc.replace(/`([^`]+)`/g, '<code class="mono text-[#25D366]">$1</code>') }}/>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Language tabs */}
+      <div className="flex gap-2 mb-2">
+        {["curl", "js", "py"].map(t => (
+          <button key={t}
+            className={"wa-btn " + (tab === t ? "wa-btn-primary" : "wa-btn-secondary")}
+            onClick={() => setTab(t)}>
+            {t === "curl" ? "cURL" : t === "js" ? "JavaScript" : "Python"}
+          </button>
+        ))}
+      </div>
+      <CopyBlock text={code} testid={`code-${tab}-${e.path}`}/>
+
+      {e.response && (
+        <div className="mt-4">
+          <div className="mono text-[10px] uppercase text-zinc-500 mb-2">RESPONSE (200 OK)</div>
+          <pre className="terminal !text-[12px]" style={{ color: "#DCF8C6" }}>{e.response}</pre>
+        </div>
+      )}
+    </div>
+  );
+}
 
 const webhookExample = `{
   "session_id": "primary",
   "direction": "incoming",
-  "remote_jid": "14155551234@s.whatsapp.net",
+  "remote_jid": "919812345678@s.whatsapp.net",
   "message_id": "3EB0...",
   "push_name": "Alice",
   "text": "hello",
   "media_type": null,
+  "status": "delivered",
   "timestamp": 1735000000,
   "created_at": "2026-01-15T10:00:00+00:00"
 }`;
@@ -87,68 +352,79 @@ export default function ApiDocs() {
         <div className="mono text-[11px] uppercase tracking-widest text-zinc-500 mb-1">/docs</div>
         <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-white">API Reference</h1>
         <p className="text-zinc-400 mt-2 text-sm max-w-2xl">
-          Use these endpoints from your CRM, backend, or scripts. All calls require a Bearer API key
-          (create one in <span className="text-[#25D366] mono">API Keys</span>).
-          Interactive Swagger UI:{" "}
-          <a className="text-[#25D366] underline mono" href={`${BASE}/docs`} target="_blank" rel="noreferrer" data-testid="swagger-link">
-            {BASE}/docs
-          </a>
+          Every endpoint here uses one of three request styles:
+          <br/>
+          <span className="mono text-[#25D366]">GET</span> (no body) ·{" "}
+          <span className="mono text-[#25D366]">POST</span> with <span className="mono text-[#3388FF]">application/json</span> ·{" "}
+          <span className="mono text-[#25D366]">POST</span> with <span className="mono text-[#FFB800]">multipart/form-data</span>.
+          <br/>
+          Full interactive Swagger UI:{" "}
+          <a className="text-[#25D366] underline mono" href={`${BASE}/docs`} target="_blank" rel="noreferrer" data-testid="swagger-link">{BASE}/docs</a>
         </p>
       </div>
 
-      <div className="wa-card p-6 mb-8">
+      <div className="wa-card p-6 mb-6">
         <div className="mono text-xs uppercase tracking-widest text-zinc-500 mb-3">Base URL</div>
         <code className="mono text-[#25D366] text-sm block break-all">{BASE}</code>
       </div>
 
       <div className="wa-card p-6 mb-8">
-        <div className="mono text-xs uppercase tracking-widest text-zinc-500 mb-3">Authentication</div>
-        <p className="text-zinc-300 text-sm mb-3">Send your API key in the <code className="mono text-[#25D366]">Authorization</code> header on every request:</p>
-        <pre className="terminal">{`Authorization: Bearer YOUR_API_KEY`}</pre>
+        <div className="mono text-xs uppercase tracking-widest text-zinc-500 mb-3">Authentication (every request)</div>
+        <p className="text-zinc-300 text-sm mb-3">Send your API key in the <code className="mono text-[#25D366]">Authorization</code> header:</p>
+        <pre className="terminal !text-[12px]">{`Authorization: Bearer YOUR_API_KEY`}</pre>
+        <p className="text-zinc-400 text-xs mt-3">
+          Create keys with fine-grained scopes and rate limits on the <a href="/app/keys" className="text-[#25D366] underline">API Keys</a> page.
+        </p>
       </div>
 
-      <h2 className="text-2xl font-medium text-white mt-10 mb-4">Endpoints</h2>
+      {/* Sections */}
+      <h2 className="text-2xl font-medium text-white mt-10 mb-4">GET endpoints</h2>
+      <p className="text-zinc-400 text-sm mb-4">Read-only. No request body. Query params (if any) go in the URL.</p>
+      {endpoints.filter(e => e.method === "GET").map((e) => <EndpointCard key={e.path} e={e}/>)}
 
-      <div className="space-y-6">
-        {endpoints.map((e) => (
-          <div key={e.path + e.method} className="wa-card p-6" data-testid={`endpoint-${e.method}-${e.path.replace(/\//g, "_")}`}>
-            <div className="flex items-center gap-3 mb-3">
-              <span className={
-                "wa-badge " +
-                (e.method === "GET" ? "wa-badge-blue" : "wa-badge-green")
-              }>{e.method}</span>
-              <code className="mono text-white text-sm">{e.path}</code>
-            </div>
-            <div className="text-zinc-300 text-sm mb-4">{e.title}</div>
+      <h2 className="text-2xl font-medium text-white mt-12 mb-4">POST with JSON body</h2>
+      <p className="text-zinc-400 text-sm mb-4">
+        Set <code className="mono text-[#25D366]">Content-Type: application/json</code> and send the body as a JSON string.
+      </p>
+      {endpoints.filter(e => e.method === "POST" && e.bodyType === "json").map((e) => <EndpointCard key={e.path} e={e}/>)}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <div className="mono text-[10px] uppercase text-zinc-500 mb-1">REQUEST BODY</div>
-                <pre className="terminal text-white" style={{ color: "#fff" }}>{e.body}</pre>
-              </div>
-              <div>
-                <div className="mono text-[10px] uppercase text-zinc-500 mb-1">CURL</div>
-                <pre className="terminal">{e.curl(BASE)}</pre>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+      <h2 className="text-2xl font-medium text-white mt-12 mb-4">POST with form-data (file uploads)</h2>
+      <p className="text-zinc-400 text-sm mb-4">
+        Use <code className="mono text-[#25D366]">multipart/form-data</code> for any endpoint that accepts a file.
+        <br/>
+        <span className="text-yellow-500">Note (JS):</span> when using <code>FormData</code>, <strong>do NOT</strong> manually set <code className="mono">Content-Type</code> — the browser writes the correct boundary for you.
+      </p>
+      {endpoints.filter(e => e.method === "POST" && e.bodyType === "form").map((e) => <EndpointCard key={e.path} e={e}/>)}
 
-      <h2 className="text-2xl font-medium text-white mt-10 mb-4">Webhook Payload (incoming messages)</h2>
+      <h2 className="text-2xl font-medium text-white mt-12 mb-4">Webhook payload (incoming messages)</h2>
       <div className="wa-card p-6">
         <p className="text-zinc-300 text-sm mb-4">
-          When configured, we POST this JSON body to your webhook URL every time a new message arrives on that session.
+          When configured on the <a href="/app/webhooks" className="text-[#25D366] underline">Webhooks page</a>, this JSON is POSTed to your URL every time a new message arrives.
         </p>
-        <pre className="terminal">{webhookExample}</pre>
+        <CopyBlock text={webhookExample} testid="webhook-example"/>
       </div>
 
-      <h2 className="text-2xl font-medium text-white mt-10 mb-4">Notes</h2>
+      <h2 className="text-2xl font-medium text-white mt-12 mb-4">Error responses</h2>
+      <div className="wa-card p-6">
+        <table className="wa-table">
+          <thead><tr><th>CODE</th><th>MEANING</th></tr></thead>
+          <tbody>
+            <tr><td className="mono text-yellow-500">401</td><td>Missing or invalid Bearer token</td></tr>
+            <tr><td className="mono text-yellow-500">402</td><td>Owner has no active subscription (or plan quota reached)</td></tr>
+            <tr><td className="mono text-yellow-500">403</td><td>API key does not have the required scope</td></tr>
+            <tr><td className="mono text-yellow-500">404</td><td>Session slug not found (for that owner)</td></tr>
+            <tr><td className="mono text-yellow-500">409</td><td>Session is not connected (scan the QR first)</td></tr>
+            <tr><td className="mono text-yellow-500">429</td><td>Rate limit exceeded (per-key) OR daily message quota hit</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 className="text-2xl font-medium text-white mt-12 mb-4">Notes</h2>
       <ul className="text-zinc-300 text-sm space-y-2 list-disc pl-6">
-        <li><span className="mono text-[#25D366]">to</span> can be a phone number with country code (digits only), or a full JID like <span className="mono">14155551234@s.whatsapp.net</span> / <span className="mono">12345-6789@g.us</span> for groups.</li>
+        <li><span className="mono text-[#25D366]">to</span> accepts a phone number (digits only, with country code) or a full JID like <span className="mono">919812345678@s.whatsapp.net</span> — or a group JID <span className="mono">12345-6789@g.us</span>.</li>
         <li>Media uploads are limited to 50 MB per file.</li>
-        <li>This is an <strong>unofficial</strong> WhatsApp API. Use only for personal / server automation. WhatsApp may ban accounts if abused - do not use for marketing spam.</li>
-        <li>Broadcasts are throttled internally (~500ms per recipient) to reduce ban risk.</li>
+        <li>Broadcasts are throttled internally (~500 ms per recipient) to reduce ban risk.</li>
+        <li><strong>This is an unofficial WhatsApp API</strong> — use only for personal / server automation. Avoid bulk marketing to protect your number.</li>
       </ul>
     </div>
   );
