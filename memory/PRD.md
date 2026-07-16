@@ -57,23 +57,35 @@ New endpoints this iteration:
 7. **Admin Messages page** shows contact submissions with mark-read, delete, and mailto-reply.
 8. **Route restructure**: `/` is now the public landing (unauth) or auto-redirect to `/app`/`/admin` (auth). All app pages moved under `/app/*` for clarity.
 
-## Test status (this iteration, curl)
+## Test status (this iteration, curl + testing agent)
 - ✅ Contact submit → admin sees in queue
 - ✅ Site-info returns brand
 - ✅ Admin creates user with plan → user logs in immediately with active subscription
 - ✅ Frontend compiles cleanly, all public pages render with proper typography
+- ✅ **Iteration 3 (Feb 2026)**: admin user CRUD, per-user feature toggles, SMTP config, admin send-message, admin change-password, and OTP-based password reset — 21/21 backend tests pass; all frontend flows verified (see `/app/test_reports/iteration_3.json`).
+
+## Recently added (Feb 2026, iteration 3)
+- **Admin: User CRUD** — add / edit / delete / suspend / approve, change plan, extend subscription days
+- **Admin: Reset user password** with optional email notification
+- **Admin: Change own password** (button in sidebar)
+- **Admin: Per-user feature flags & numeric limits** (10 feature toggles: send_text, send_media, broadcast, rules, webhooks, api_access, multi_session, business_hours, groups, logs; 5 limits: max_sessions, max_messages_per_day, max_api_keys, max_rules, max_webhooks). Defaults inherit from plan.
+- **Admin: SMTP configuration UI** (host, port, user, app-password, from-name, from-email, TLS/SSL). Test-send button.
+- **Admin: Send WhatsApp message** via any user's connected session (new page `/admin/send`).
+- **User: Password reset via Email OTP** (3-step public flow: email → 6-digit OTP → new password). Falls back gracefully if SMTP disabled.
+- **Welcome email** sent to newly created users (contains temporary credentials).
+- **New light-theme admin panel design** — emerald accents, Fraunces + Inter fonts, consistent with marketing site. Own `AdminLayout` shell.
 
 ## Prioritized backlog
 ### P1
 - Payment gateway (Razorpay UPI intent) for auto-verification instead of manual UTR entry
-- Email service (Resend/SendGrid) for approval / reset / expiry / contact-reply
-- Cron: subscription renewal reminders (7d / 3d / 1d before expiry)
+- Cron: subscription renewal reminders (7d / 3d / 1d before expiry) — now that SMTP is wired
 
 ### P2
 - Invoice PDF on verified payment
 - Coupon codes / prorated upgrades
 - Bulk user actions (approve many, suspend by inactivity)
 - Contacts tagging + segmented broadcast (in-app)
+- Split `saas.py` (>1000 lines) into `admin_users.py`, `admin_smtp.py`, `admin_send.py`, `auth_public.py` routers
 
 ### Nice-to-have
 - 2FA (TOTP) for admin
@@ -81,3 +93,4 @@ New endpoints this iteration:
 - Team members per subscriber
 - Referral / affiliate system with tracking
 - Dark/light mode toggle for public site
+

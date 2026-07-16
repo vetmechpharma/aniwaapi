@@ -996,8 +996,11 @@ async def admin_send_text(body: AdminSendTextIn, admin=Depends(require_admin)):
     if not session:
         raise HTTPException(status_code=404, detail="Session not found for this user")
     async with httpx.AsyncClient(timeout=30) as c:
-        r = await c.post(f"{WA_SIDECAR_URL}/sessions/{session['sidecar_id']}/send-text",
-                         headers=sidecar_headers(), json={"to": body.to, "text": body.text})
+        try:
+            r = await c.post(f"{WA_SIDECAR_URL}/sessions/{session['sidecar_id']}/send-text",
+                             headers=sidecar_headers(), json={"to": body.to, "text": body.text})
+        except httpx.RequestError as e:
+            raise HTTPException(status_code=502, detail=f"WhatsApp sidecar unreachable: {e}")
     payload = r.json() if r.content else {}
     if r.status_code >= 400:
         raise HTTPException(status_code=r.status_code, detail=payload)

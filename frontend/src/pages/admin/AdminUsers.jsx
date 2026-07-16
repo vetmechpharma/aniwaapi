@@ -184,7 +184,7 @@ export default function AdminUsers() {
               <div><label className="adm-label">Password * (min 6)</label><input required type="password" minLength={6} className="adm-input" value={nf.password} onChange={setN("password")} data-testid="new-password"/></div>
               <div><label className="adm-label">Full name *</label><input required className="adm-input" value={nf.name} onChange={setN("name")} data-testid="new-name"/></div>
               <div><label className="adm-label">Company</label><input className="adm-input" value={nf.company} onChange={setN("company")}/></div>
-              <div><label className="adm-label">Phone *</label><input required className="adm-input" value={nf.phone} onChange={setN("phone")}/></div>
+              <div><label className="adm-label">Phone *</label><input required className="adm-input" value={nf.phone} onChange={setN("phone")} data-testid="new-phone"/></div>
               <div><label className="adm-label">Alt Phone</label><input className="adm-input" value={nf.alt_phone} onChange={setN("alt_phone")}/></div>
               <div className="md:col-span-2"><label className="adm-label">Location</label><input className="adm-input" value={nf.location} onChange={setN("location")}/></div>
               <div><label className="adm-label">Role</label>
