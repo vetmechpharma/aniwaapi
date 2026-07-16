@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { api, formatError } from "@/lib/api";
-import { UserCheck, UserMinus, TrashSimple, Key, Copy, MagnifyingGlass } from "@phosphor-icons/react";
+import { UserCheck, UserMinus, TrashSimple, Key, Copy, MagnifyingGlass, UserPlus, XCircle, FloppyDisk } from "@phosphor-icons/react";
 
 function StatusPill({ s }) {
   const m = {
@@ -10,15 +10,30 @@ function StatusPill({ s }) {
   return <span className={"wa-badge " + (m[s] || "")}>{(s || "").toUpperCase()}</span>;
 }
 
+const emptyNew = {
+  email: "", password: "", name: "", company: "",
+  phone: "", alt_phone: "", location: "",
+  role: "user", status: "approved",
+  plan_id: "", validity_days: "",
+};
+
 export default function AdminUsers() {
   const [users, setUsers] = useState([]);
+  const [plans, setPlans] = useState([]);
   const [q, setQ] = useState("");
   const [msg, setMsg] = useState(null);
-  const [linkModal, setLinkModal] = useState(null); // { user, token, path }
+  const [linkModal, setLinkModal] = useState(null);
+  const [addOpen, setAddOpen] = useState(false);
+  const [nf, setNf] = useState(emptyNew);
+  const [addErr, setAddErr] = useState("");
+  const [addBusy, setAddBusy] = useState(false);
 
   async function load() {
-    try { const { data } = await api.get("/admin/users"); setUsers(data.users || []); }
-    catch (e) { setMsg("ERR: " + formatError(e)); }
+    try {
+      const [u, p] = await Promise.all([api.get("/admin/users"), api.get("/admin/plans")]);
+      setUsers(u.data.users || []);
+      setPlans(p.data.plans || []);
+    } catch (e) { setMsg("ERR: " + formatError(e)); }
   }
   useEffect(() => { load(); }, []);
 
@@ -45,6 +60,21 @@ export default function AdminUsers() {
     await act(uid, "", "delete");
   }
 
+  const setN = (k) => (e) => setNf({ ...nf, [k]: e.target.value });
+  async function createUser(e) {
+    e?.preventDefault?.();
+    setAddErr(""); setAddBusy(true);
+    try {
+      const body = { ...nf };
+      if (!body.plan_id) delete body.plan_id;
+      if (!body.validity_days) delete body.validity_days;
+      else body.validity_days = Number(body.validity_days);
+      await api.post("/admin/users", body);
+      setAddOpen(false); setNf(emptyNew); load();
+    } catch (e) { setAddErr(formatError(e)); }
+    finally { setAddBusy(false); }
+  }
+
   const filtered = users.filter(u => {
     if (!q) return true;
     const s = `${u.email} ${u.name} ${u.company} ${u.phone}`.toLowerCase();
@@ -53,7 +83,7 @@ export default function AdminUsers() {
 
   return (
     <div className="p-6 md:p-10">
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex items-center justify-between flex-wrap gap-3">
         <div>
           <div className="mono text-[11px] uppercase tracking-widest text-zinc-500 mb-1">/admin/users</div>
           <h1 className="text-3xl md:text-4xl font-semibold text-white">Users Management</h1>
@@ -61,10 +91,66 @@ export default function AdminUsers() {
         <div className="flex items-center gap-2">
           <MagnifyingGlass size={16} className="text-zinc-500"/>
           <input className="wa-input max-w-xs" placeholder="search email / name..." value={q} onChange={(e) => setQ(e.target.value)} data-testid="users-search"/>
+          <button className="wa-btn wa-btn-primary" onClick={() => { setNf(emptyNew); setAddOpen(true); }} data-testid="add-user-btn">
+            <UserPlus size={14}/> ADD USER
+          </button>
         </div>
       </div>
 
       {msg && <div className="wa-card p-3 mb-4 mono text-xs text-red-400">{msg}</div>}
+
+      {addOpen && (
+        <div className="wa-card p-6 mb-6" data-testid="add-user-form">
+          <div className="flex items-center justify-between mb-4">
+            <div className="mono text-sm uppercase text-white flex items-center gap-2"><UserPlus size={16} color="#00E559"/> Add User Manually</div>
+            <button className="wa-btn wa-btn-secondary" onClick={() => setAddOpen(false)}><XCircle size={12}/></button>
+          </div>
+          <form onSubmit={createUser} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div><label className="wa-label">EMAIL *</label>
+              <input required type="email" className="wa-input" value={nf.email} onChange={setN("email")} data-testid="new-email"/></div>
+            <div><label className="wa-label">PASSWORD * (min 6)</label>
+              <input required type="password" minLength={6} className="wa-input" value={nf.password} onChange={setN("password")} data-testid="new-password"/></div>
+            <div><label className="wa-label">FULL NAME *</label>
+              <input required className="wa-input" value={nf.name} onChange={setN("name")} data-testid="new-name"/></div>
+            <div><label className="wa-label">COMPANY</label>
+              <input className="wa-input" value={nf.company} onChange={setN("company")}/></div>
+            <div><label className="wa-label">PHONE *</label>
+              <input required className="wa-input" value={nf.phone} onChange={setN("phone")}/></div>
+            <div><label className="wa-label">ALT PHONE</label>
+              <input className="wa-input" value={nf.alt_phone} onChange={setN("alt_phone")}/></div>
+            <div className="md:col-span-3"><label className="wa-label">LOCATION</label>
+              <input className="wa-input" value={nf.location} onChange={setN("location")}/></div>
+            <div><label className="wa-label">ROLE</label>
+              <select className="wa-select" value={nf.role} onChange={setN("role")} data-testid="new-role">
+                <option value="user">user</option>
+                <option value="admin">admin</option>
+              </select>
+            </div>
+            <div><label className="wa-label">STATUS</label>
+              <select className="wa-select" value={nf.status} onChange={setN("status")} data-testid="new-status">
+                <option value="approved">approved</option>
+                <option value="pending">pending</option>
+                <option value="suspended">suspended</option>
+              </select>
+            </div>
+            <div><label className="wa-label">ASSIGN PLAN (optional)</label>
+              <select className="wa-select" value={nf.plan_id} onChange={setN("plan_id")} data-testid="new-plan">
+                <option value="">-- none --</option>
+                {plans.map(p => <option key={p.id} value={p.id}>{p.name} ({p.validity_days}d)</option>)}
+              </select>
+            </div>
+            {nf.plan_id && (
+              <div className="md:col-span-3"><label className="wa-label">OVERRIDE VALIDITY DAYS (optional)</label>
+                <input type="number" className="wa-input" placeholder="uses plan default if empty" value={nf.validity_days} onChange={setN("validity_days")}/></div>
+            )}
+            <div className="md:col-span-3 flex gap-3 mt-2">
+              <button type="submit" disabled={addBusy} className="wa-btn wa-btn-primary" data-testid="new-save"><FloppyDisk size={12}/> CREATE USER</button>
+              <button type="button" className="wa-btn wa-btn-secondary" onClick={() => setAddOpen(false)}>CANCEL</button>
+            </div>
+            {addErr && <div className="md:col-span-3 mono text-xs text-red-400">ERR: {addErr}</div>}
+          </form>
+        </div>
+      )}
 
       {linkModal && (
         <div className="wa-card p-6 mb-6 border-[#00E559]" data-testid="reset-link-modal">

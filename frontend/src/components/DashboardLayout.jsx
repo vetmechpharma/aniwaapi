@@ -4,19 +4,19 @@ import { api, useAuth } from "@/lib/api";
 import {
   House, Broadcast, PaperPlaneRight, ChatCircleDots, PlugsConnected,
   ListDashes, Key, BookOpen, SignOut, Terminal, CreditCard,
-  UsersThree, Package, CurrencyDollar, Gear, ShieldCheck,
+  UsersThree, Package, CurrencyDollar, Gear, ShieldCheck, Envelope,
 } from "@phosphor-icons/react";
 
 const userLinks = [
-  { to: "/", icon: House, label: "Overview", testid: "nav-overview", end: true },
-  { to: "/sessions", icon: Broadcast, label: "Sessions", testid: "nav-sessions" },
-  { to: "/send", icon: PaperPlaneRight, label: "Send", testid: "nav-send" },
-  { to: "/rules", icon: ChatCircleDots, label: "Auto-Reply", testid: "nav-rules" },
-  { to: "/webhooks", icon: PlugsConnected, label: "Webhooks", testid: "nav-webhooks" },
-  { to: "/logs", icon: ListDashes, label: "Logs", testid: "nav-logs" },
-  { to: "/keys", icon: Key, label: "API Keys", testid: "nav-keys" },
-  { to: "/billing", icon: CreditCard, label: "Billing", testid: "nav-billing" },
-  { to: "/docs", icon: BookOpen, label: "API Docs", testid: "nav-docs" },
+  { to: "/app", icon: House, label: "Overview", testid: "nav-overview", end: true },
+  { to: "/app/sessions", icon: Broadcast, label: "Sessions", testid: "nav-sessions" },
+  { to: "/app/send", icon: PaperPlaneRight, label: "Send", testid: "nav-send" },
+  { to: "/app/rules", icon: ChatCircleDots, label: "Auto-Reply", testid: "nav-rules" },
+  { to: "/app/webhooks", icon: PlugsConnected, label: "Webhooks", testid: "nav-webhooks" },
+  { to: "/app/logs", icon: ListDashes, label: "Logs", testid: "nav-logs" },
+  { to: "/app/keys", icon: Key, label: "API Keys", testid: "nav-keys" },
+  { to: "/app/billing", icon: CreditCard, label: "Billing", testid: "nav-billing" },
+  { to: "/app/docs", icon: BookOpen, label: "API Docs", testid: "nav-docs" },
 ];
 
 const adminLinks = [
@@ -24,6 +24,7 @@ const adminLinks = [
   { to: "/admin/users", icon: UsersThree, label: "Users", testid: "nav-admin-users" },
   { to: "/admin/plans", icon: Package, label: "Plans", testid: "nav-admin-plans" },
   { to: "/admin/payments", icon: CurrencyDollar, label: "Payments", testid: "nav-admin-payments" },
+  { to: "/admin/messages", icon: Envelope, label: "Messages", testid: "nav-admin-messages" },
   { to: "/admin/settings", icon: Gear, label: "Settings", testid: "nav-admin-settings" },
 ];
 
@@ -99,7 +100,7 @@ export default function DashboardLayout() {
                 {summary.days_left} days left
               </div>
             )}
-            <Link to="/billing" className="wa-btn wa-btn-secondary w-full justify-center mt-2 text-[10px]">MANAGE</Link>
+            <Link to="/app/billing" className="wa-btn wa-btn-secondary w-full justify-center mt-2 text-[10px]">MANAGE</Link>
           </div>
         )}
 

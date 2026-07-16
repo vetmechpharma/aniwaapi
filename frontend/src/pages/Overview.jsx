@@ -60,7 +60,7 @@ export default function Overview() {
           </div>
           <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-white">Command Center</h1>
         </div>
-        <Link to="/sessions" className="wa-btn wa-btn-primary" data-testid="quick-new-session">
+        <Link to="/app/sessions" className="wa-btn wa-btn-primary" data-testid="quick-new-session">
           + NEW SESSION <ArrowUpRight size={14} weight="bold" />
         </Link>
       </div>
@@ -76,7 +76,7 @@ export default function Overview() {
         <div className="wa-card p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="mono text-xs uppercase tracking-widest text-zinc-500">Active Sessions</div>
-            <Link to="/sessions" className="mono text-xs text-[#00E559] hover:underline">MANAGE →</Link>
+            <Link to="/app/sessions" className="mono text-xs text-[#00E559] hover:underline">MANAGE →</Link>
           </div>
           {sessions.length === 0 ? (
             <div className="mono text-xs text-zinc-500 py-6 text-center border border-dashed border-zinc-800">[ NO ACTIVE SESSIONS ]</div>

@@ -3,7 +3,7 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
   --wa-bg: #000000;
@@ -196,3 +196,139 @@ body {
 
 /* shadcn compat overrides */
 * { border-color: var(--wa-border); }
+
+/* ============================================================ */
+/* PUBLIC (marketing) styles — clean elegant look for landing,    */
+/* pricing, contact, login, register.                             */
+/* ============================================================ */
+.pub {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #F4F4F5;
+  background: #0A0A0B;
+}
+.pub-body {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 15% -10%, rgba(0, 229, 89, 0.10) 0%, transparent 40%),
+    radial-gradient(circle at 90% 10%, rgba(0, 100, 255, 0.06) 0%, transparent 45%),
+    #0A0A0B;
+}
+.pub h1, .pub h2, .pub h3 {
+  font-family: 'Instrument Serif', 'Times New Roman', serif;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: #FAFAFA;
+}
+.pub h1 { font-size: clamp(2.8rem, 6vw, 4.75rem); line-height: 1.05; }
+.pub h2 { font-size: clamp(2rem, 4vw, 3.25rem); line-height: 1.1; }
+.pub h3 { font-size: clamp(1.4rem, 2.2vw, 1.9rem); line-height: 1.2; }
+.pub p { line-height: 1.65; color: #A1A1AA; }
+.pub .lead { font-size: 1.125rem; color: #D4D4D8; }
+.pub .eyebrow {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #71717A;
+  font-weight: 500;
+}
+.pub .accent { color: #00E559; }
+.pub .accent-serif { font-style: italic; color: #FAFAFA; }
+
+.pub-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 12px 22px;
+  border-radius: 999px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: transform 120ms ease, background 200ms ease, color 200ms ease, border-color 200ms ease;
+  text-decoration: none;
+}
+.pub-btn:active { transform: scale(0.97); }
+.pub-btn-primary { background: #FAFAFA; color: #0A0A0B; }
+.pub-btn-primary:hover { background: #00E559; color: #000; }
+.pub-btn-secondary { background: transparent; color: #FAFAFA; border-color: rgba(255,255,255,0.15); }
+.pub-btn-secondary:hover { border-color: #00E559; color: #00E559; }
+.pub-btn-ghost { background: transparent; color: #A1A1AA; }
+.pub-btn-ghost:hover { color: #FAFAFA; }
+
+.pub-input, .pub-textarea, .pub-select {
+  width: 100%;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: #FAFAFA;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 150ms ease, background 150ms ease;
+}
+.pub-input:focus, .pub-textarea:focus, .pub-select:focus {
+  border-color: #00E559;
+  background: rgba(0, 229, 89, 0.04);
+}
+.pub-textarea { resize: vertical; min-height: 120px; }
+.pub-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px; font-weight: 500;
+  color: #A1A1AA; display: block; margin-bottom: 6px;
+}
+
+.pub-card {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 24px;
+  transition: border-color 200ms ease, transform 200ms ease, background 200ms ease;
+}
+.pub-card:hover { border-color: rgba(0, 229, 89, 0.35); }
+.pub-card-highlight { border-color: rgba(0, 229, 89, 0.4); background: rgba(0, 229, 89, 0.03); }
+
+.pub-nav {
+  position: sticky; top: 0; z-index: 40;
+  backdrop-filter: blur(14px);
+  background: rgba(10,10,11,0.7);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.pub-nav-link {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: #A1A1AA;
+  transition: color 150ms;
+  text-decoration: none;
+}
+.pub-nav-link:hover, .pub-nav-link.active { color: #FAFAFA; }
+
+.pub-footer {
+  border-top: 1px solid rgba(255,255,255,0.06);
+  color: #71717A;
+  font-size: 13px;
+}
+
+.pub-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(0, 229, 89, 0.08);
+  border: 1px solid rgba(0, 229, 89, 0.25);
+  color: #00E559;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+}
+
+.pub-divider {
+  height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+}
+
+.pub-grid-bg {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse at center top, black 40%, transparent 80%);
+}

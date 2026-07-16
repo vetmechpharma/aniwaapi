@@ -1,115 +1,61 @@
 import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth, formatError } from "@/lib/api";
-import { Terminal, LockKey } from "@phosphor-icons/react";
+import { useSiteInfo } from "@/lib/siteInfo";
+import PublicNav from "@/components/PublicNav";
 
 export default function Login() {
   const { login } = useAuth();
+  const info = useSiteInfo();
+  const nav = useNavigate();
   const [email, setEmail] = useState("admin@example.com");
   const [password, setPassword] = useState("admin123");
   const [err, setErr] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [busy, setBusy] = useState(false);
 
   async function submit(e) {
     e.preventDefault();
-    setErr("");
-    setLoading(true);
+    setErr(""); setBusy(true);
     try {
-      await login(email, password);
-    } catch (e2) {
-      setErr(formatError(e2));
-    } finally {
-      setLoading(false);
-    }
+      const u = await login(email, password);
+      nav(u.role === "admin" ? "/admin" : "/");
+    } catch (e2) { setErr(formatError(e2)); }
+    finally { setBusy(false); }
   }
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center px-4 grid-bg"
-      data-testid="login-page"
-    >
-      <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <div className="inline-flex items-center gap-3 mb-3">
-            <Terminal size={36} weight="bold" color="#00E559" />
-            <span className="mono text-2xl font-bold tracking-tight text-white">
-              WA_API::CONSOLE
-            </span>
+    <div className="pub pub-body min-h-screen" data-testid="login-page">
+      <PublicNav brand={info.company_name}/>
+      <section className="px-6 py-20">
+        <div className="max-w-md mx-auto">
+          <div className="text-center mb-8">
+            <h1 className="mb-2">Welcome <span className="accent-serif italic">back.</span></h1>
+            <p className="text-sm">Sign in to manage your workspace.</p>
           </div>
-          <p className="mono text-xs text-zinc-500 uppercase tracking-widest">
-            Unofficial WhatsApp API // Self-hosted
-          </p>
+          <form onSubmit={submit} className="pub-card" data-testid="login-form">
+            <div className="space-y-4">
+              <div>
+                <label className="pub-label">Email</label>
+                <input required type="email" className="pub-input" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" data-testid="login-email-input"/>
+              </div>
+              <div>
+                <div className="flex justify-between items-baseline">
+                  <label className="pub-label">Password</label>
+                  <Link to="/forgot-password" className="text-xs text-zinc-500 hover:text-white" data-testid="link-forgot">Forgot?</Link>
+                </div>
+                <input required type="password" className="pub-input" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" data-testid="login-password-input"/>
+              </div>
+            </div>
+            {err && <div className="mt-4 p-3 rounded-lg border border-red-900 bg-red-950/30 text-sm text-red-300" data-testid="login-error">{err}</div>}
+            <button disabled={busy} className="pub-btn pub-btn-primary w-full mt-6" data-testid="login-submit-button">
+              {busy ? "Signing in..." : "Sign in"}
+            </button>
+            <div className="text-center text-xs text-zinc-500 mt-6">
+              New here? <Link to="/register" className="text-white hover:underline" data-testid="link-register">Create an account →</Link>
+            </div>
+          </form>
         </div>
-
-        <form
-          onSubmit={submit}
-          className="wa-card p-8"
-          data-testid="login-form"
-        >
-          <div className="flex items-center gap-2 mb-6">
-            <LockKey size={18} color="#00E559" />
-            <span className="mono text-sm uppercase tracking-widest text-white">
-              Admin Access
-            </span>
-          </div>
-
-          <div className="mb-4">
-            <label className="wa-label">EMAIL</label>
-            <input
-              className="wa-input"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              autoComplete="email"
-              required
-              data-testid="login-email-input"
-            />
-          </div>
-
-          <div className="mb-6">
-            <label className="wa-label">PASSWORD</label>
-            <input
-              className="wa-input"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="current-password"
-              required
-              data-testid="login-password-input"
-            />
-          </div>
-
-          {err && (
-            <div
-              className="mono text-xs text-red-400 mb-4 p-3 border border-red-800 bg-red-950/30"
-              data-testid="login-error"
-            >
-              ERR: {err}
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="wa-btn wa-btn-primary w-full justify-center"
-            data-testid="login-submit-button"
-          >
-            {loading ? "AUTHENTICATING..." : "> ENTER"}
-          </button>
-
-          <div className="mt-6 pt-6 border-t border-zinc-800 space-y-3">
-            <div className="flex justify-between mono text-[10px] uppercase tracking-widest">
-              <a href="/forgot-password" className="text-zinc-400 hover:text-[#00E559]" data-testid="link-forgot">Forgot password?</a>
-              <a href="/register" className="text-[#00E559] hover:underline" data-testid="link-register">Create account →</a>
-            </div>
-            <div className="mono text-[10px] text-zinc-600 uppercase tracking-widest text-center">
-              [ default seed: admin@example.com / admin123 ]
-            </div>
-            <div className="mono text-[10px] text-center">
-              <a href="/pricing" className="text-zinc-400 hover:text-[#00E559]" data-testid="link-pricing">View pricing plans →</a>
-            </div>
-          </div>
-        </form>
-      </div>
+      </section>
     </div>
   );
 }

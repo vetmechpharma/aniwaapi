@@ -74,6 +74,26 @@ class ProfileUpdateIn(BaseModel):
 class UserSuspendIn(BaseModel):
     reason: Optional[str] = ""
 
+class AdminCreateUserIn(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=6)
+    name: str
+    company: Optional[str] = ""
+    phone: str
+    alt_phone: Optional[str] = ""
+    location: Optional[str] = ""
+    role: str = "user"          # "user" or "admin"
+    status: str = "approved"    # default approved (admin-created)
+    plan_id: Optional[str] = None   # optional: assign a plan immediately
+    validity_days: Optional[int] = None  # override plan validity if set
+
+class ContactIn(BaseModel):
+    name: str
+    email: EmailStr
+    subject: Optional[str] = ""
+    message: str
+    phone: Optional[str] = ""
+
 # ---------- Helpers ----------
 def _doc_out(d):
     d = dict(d)
@@ -165,6 +185,24 @@ async def public_plans():
     s = await _get_settings()
     return {"plans": plans, "billing": {"contact_email": s.get("contact_email"), "contact_phone": s.get("contact_phone"),
                                         "company_name": s.get("company_name")}}
+
+# ---------- Public: contact form ----------
+@router.post("/contact", status_code=201)
+async def submit_contact(body: ContactIn):
+    doc = body.model_dump()
+    doc.update({"status": "new", "created_at": now_iso()})
+    await db.contact_messages.insert_one(doc)
+    return {"ok": True, "message": "Thanks! We'll get back to you shortly."}
+
+# ---------- Public: brand/site info ----------
+@router.get("/site-info")
+async def site_info():
+    s = await _get_settings()
+    return {
+        "company_name": s.get("company_name") or "WA_API",
+        "contact_email": s.get("contact_email") or "",
+        "contact_phone": s.get("contact_phone") or "",
+    }
 
 # ---------- User: profile ----------
 @router.put("/auth/profile")
@@ -296,6 +334,47 @@ async def my_payments(user=Depends(require_approved_user)):
     return {"payments": items}
 
 # ---------- Admin: users management ----------
+@router.post("/admin/users", status_code=201)
+async def admin_create_user(body: AdminCreateUserIn, _a=Depends(require_admin)):
+    email = body.email.lower().strip()
+    if await db.users.find_one({"email": email}):
+        raise HTTPException(status_code=409, detail="Email already exists")
+    if body.role not in ("user", "admin"):
+        raise HTTPException(status_code=400, detail="role must be user or admin")
+    if body.status not in ("approved", "pending", "suspended"):
+        raise HTTPException(status_code=400, detail="Invalid status")
+
+    subscription_expires_at = None
+    current_plan_id = None
+    if body.plan_id:
+        plan = await db.plans.find_one({"_id": ObjectId(body.plan_id)})
+        if not plan:
+            raise HTTPException(status_code=400, detail="Plan not found")
+        current_plan_id = str(plan["_id"])
+        vd = int(body.validity_days) if body.validity_days else int(plan.get("validity_days", 30))
+        subscription_expires_at = (datetime.now(timezone.utc) + timedelta(days=vd)).isoformat()
+
+    doc = {
+        "email": email,
+        "password_hash": hash_password(body.password),
+        "name": body.name.strip(),
+        "company": body.company or "",
+        "phone": body.phone.strip(),
+        "alt_phone": body.alt_phone or "",
+        "location": body.location or "",
+        "role": body.role,
+        "status": body.status,
+        "current_plan_id": current_plan_id,
+        "subscription_expires_at": subscription_expires_at,
+        "failed_logins": 0,
+        "locked_until": None,
+        "created_at": now_iso(),
+        "created_by_admin": True,
+    }
+    res = await db.users.insert_one(doc)
+    return {"ok": True, "id": str(res.inserted_id), "email": email,
+            "subscription_expires_at": subscription_expires_at}
+
 @router.get("/admin/users")
 async def admin_list_users(_a=Depends(require_admin)):
     users = []
@@ -504,6 +583,25 @@ async def admin_set_settings(body: SettingsIn, _a=Depends(require_admin)):
     await db.settings.update_one({"key": "billing"}, {"$set": data}, upsert=True)
     return data
 
+# ---------- Admin: contact messages ----------
+@router.get("/admin/messages")
+async def admin_list_messages(_a=Depends(require_admin)):
+    items = []
+    async for d in db.contact_messages.find().sort("created_at", -1).limit(500):
+        items.append(_doc_out(d))
+    return {"messages": items}
+
+@router.post("/admin/messages/{mid}/mark-read")
+async def admin_mark_message_read(mid: str, _a=Depends(require_admin)):
+    await db.contact_messages.update_one({"_id": ObjectId(mid)},
+                                         {"$set": {"status": "read", "read_at": now_iso()}})
+    return {"ok": True}
+
+@router.delete("/admin/messages/{mid}")
+async def admin_delete_message(mid: str, _a=Depends(require_admin)):
+    await db.contact_messages.delete_one({"_id": ObjectId(mid)})
+    return {"ok": True}
+
 # ---------- Admin: stats overview ----------
 @router.get("/admin/overview")
 async def admin_overview(_a=Depends(require_admin)):
@@ -517,8 +615,10 @@ async def admin_overview(_a=Depends(require_admin)):
     pending_payments = await db.payments.count_documents({"status": "submitted"})
     verified_payments = await db.payments.count_documents({"status": "verified"})
     total_plans = await db.plans.count_documents({})
+    new_messages = await db.contact_messages.count_documents({"status": "new"})
     return {
         "users": {"total": total_users, "pending": pending_users, "active": active_users, "suspended": suspended_users},
         "payments": {"awaiting_verification": pending_payments, "verified": verified_payments},
         "plans_count": total_plans,
+        "unread_messages": new_messages,
     }

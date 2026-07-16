@@ -4,11 +4,17 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/lib/api";
 import { Toaster } from "sonner";
 
+// Public
+import Landing from "@/pages/Landing";
+import Features from "@/pages/Features";
+import Pricing from "@/pages/Pricing";
+import Contact from "@/pages/Contact";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import ForgotPassword from "@/pages/ForgotPassword";
 import ResetPassword from "@/pages/ResetPassword";
-import Pricing from "@/pages/Pricing";
+
+// App
 import DashboardLayout from "@/components/DashboardLayout";
 import Overview from "@/pages/Overview";
 import Sessions from "@/pages/Sessions";
@@ -19,11 +25,14 @@ import Logs from "@/pages/Logs";
 import ApiKeys from "@/pages/ApiKeys";
 import ApiDocs from "@/pages/ApiDocs";
 import Billing from "@/pages/Billing";
+
+// Admin
 import AdminOverview from "@/pages/admin/AdminOverview";
 import AdminUsers from "@/pages/admin/AdminUsers";
 import AdminPlans from "@/pages/admin/AdminPlans";
 import AdminPayments from "@/pages/admin/AdminPayments";
 import AdminSettings from "@/pages/admin/AdminSettings";
+import AdminMessages from "@/pages/admin/AdminMessages";
 
 function Loader() {
   return (
@@ -44,18 +53,23 @@ function AdminOnly({ children }) {
   const { user } = useAuth();
   if (user === null) return <Loader />;
   if (user === false) return <Navigate to="/login" replace />;
-  if (user.role !== "admin") return <Navigate to="/" replace />;
+  if (user.role !== "admin") return <Navigate to="/app" replace />;
   return children;
 }
 
 function LoginGate() {
   const { user } = useAuth();
   if (user === null) return <Loader />;
-  if (user && user !== false) {
-    // Redirect admins to admin panel, users to overview
-    return <Navigate to={user.role === "admin" ? "/admin" : "/"} replace />;
-  }
+  if (user && user !== false) return <Navigate to={user.role === "admin" ? "/admin" : "/app"} replace />;
   return <Login />;
+}
+
+function HomeGate() {
+  // Public landing when not logged in; auto-redirect to app/admin when logged in
+  const { user } = useAuth();
+  if (user === null) return <Loader />;
+  if (user && user !== false) return <Navigate to={user.role === "admin" ? "/admin" : "/app"} replace />;
+  return <Landing />;
 }
 
 function App() {
@@ -64,15 +78,18 @@ function App() {
       <BrowserRouter>
         <Toaster theme="dark" richColors position="bottom-right" />
         <Routes>
-          {/* Public */}
+          {/* Public marketing site */}
+          <Route path="/" element={<HomeGate />} />
+          <Route path="/features" element={<Features />} />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/contact" element={<Contact />} />
           <Route path="/login" element={<LoginGate />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/pricing" element={<Pricing />} />
 
-          {/* Authenticated */}
-          <Route path="/" element={<Protected><DashboardLayout /></Protected>}>
+          {/* Authenticated app */}
+          <Route path="/app" element={<Protected><DashboardLayout /></Protected>}>
             <Route index element={<Overview />} />
             <Route path="sessions" element={<Sessions />} />
             <Route path="send" element={<Send />} />
@@ -82,14 +99,18 @@ function App() {
             <Route path="keys" element={<ApiKeys />} />
             <Route path="docs" element={<ApiDocs />} />
             <Route path="billing" element={<Billing />} />
-
-            {/* Admin */}
-            <Route path="admin" element={<AdminOnly><AdminOverview /></AdminOnly>} />
-            <Route path="admin/users" element={<AdminOnly><AdminUsers /></AdminOnly>} />
-            <Route path="admin/plans" element={<AdminOnly><AdminPlans /></AdminOnly>} />
-            <Route path="admin/payments" element={<AdminOnly><AdminPayments /></AdminOnly>} />
-            <Route path="admin/settings" element={<AdminOnly><AdminSettings /></AdminOnly>} />
           </Route>
+
+          {/* Admin panel (also uses DashboardLayout) */}
+          <Route path="/admin" element={<AdminOnly><DashboardLayout /></AdminOnly>}>
+            <Route index element={<AdminOverview />} />
+            <Route path="users" element={<AdminUsers />} />
+            <Route path="plans" element={<AdminPlans />} />
+            <Route path="payments" element={<AdminPayments />} />
+            <Route path="messages" element={<AdminMessages />} />
+            <Route path="settings" element={<AdminSettings />} />
+          </Route>
+
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

@@ -2,11 +2,14 @@ import React, { useState } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { formatError } from "@/lib/api";
-import { Terminal, Key } from "@phosphor-icons/react";
+import { useSiteInfo } from "@/lib/siteInfo";
+import PublicNav from "@/components/PublicNav";
+import { Check } from "@phosphor-icons/react";
 
 export default function ResetPassword() {
   const [sp] = useSearchParams();
   const nav = useNavigate();
+  const info = useSiteInfo();
   const [token, setToken] = useState(sp.get("token") || "");
   const [pw, setPw] = useState("");
   const [pw2, setPw2] = useState("");
@@ -28,37 +31,38 @@ export default function ResetPassword() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 grid-bg">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-6">
-          <Terminal size={32} weight="bold" color="#00E559" className="mx-auto mb-2"/>
-        </div>
-        {!ok ? (
-          <form onSubmit={submit} className="wa-card p-8" data-testid="reset-form">
-            <div className="flex items-center gap-2 mb-6"><Key size={18} color="#00E559"/>
-              <span className="mono text-sm uppercase tracking-widest text-white">Reset Password</span>
-            </div>
-            <label className="wa-label">RESET TOKEN</label>
-            <input required className="wa-input mono text-xs" value={token} onChange={(e) => setToken(e.target.value)} data-testid="reset-token"/>
-            <div className="mt-4"><label className="wa-label">NEW PASSWORD</label>
-              <input required type="password" minLength={6} className="wa-input" value={pw} onChange={(e) => setPw(e.target.value)} data-testid="reset-pw"/></div>
-            <div className="mt-4"><label className="wa-label">CONFIRM PASSWORD</label>
-              <input required type="password" minLength={6} className="wa-input" value={pw2} onChange={(e) => setPw2(e.target.value)} data-testid="reset-pw2"/></div>
-            {err && <div className="mono text-xs text-red-400 mt-4">ERR: {err}</div>}
-            <button disabled={busy} className="wa-btn wa-btn-primary w-full justify-center mt-6" data-testid="reset-submit">
-              {busy ? "RESETTING..." : "> RESET PASSWORD"}
-            </button>
-            <div className="text-center mt-4 mono text-[11px] text-zinc-500">
-              <Link to="/login" className="text-[#00E559] underline">← LOGIN</Link>
-            </div>
-          </form>
-        ) : (
-          <div className="wa-card p-8 text-center" data-testid="reset-success">
-            <div className="mono text-lg text-[#00E559] mb-3">PASSWORD RESET</div>
-            <p className="text-zinc-400 text-sm">Redirecting to login...</p>
+    <div className="pub pub-body min-h-screen">
+      <PublicNav brand={info.company_name}/>
+      <section className="px-6 py-20">
+        <div className="max-w-md mx-auto">
+          <div className="text-center mb-8">
+            <h1 className="mb-2">Reset <span className="accent-serif italic">password.</span></h1>
           </div>
-        )}
-      </div>
+          {ok ? (
+            <div className="pub-card text-center" data-testid="reset-success">
+              <Check size={26} className="accent mx-auto mb-4"/>
+              <h3 className="mb-3">All set.</h3>
+              <p>Redirecting to login…</p>
+            </div>
+          ) : (
+            <form onSubmit={submit} className="pub-card" data-testid="reset-form">
+              <label className="pub-label">Reset token</label>
+              <input required className="pub-input font-mono text-xs" value={token} onChange={(e) => setToken(e.target.value)} data-testid="reset-token"/>
+              <div className="mt-4"><label className="pub-label">New password</label>
+                <input required type="password" minLength={6} className="pub-input" value={pw} onChange={(e) => setPw(e.target.value)} data-testid="reset-pw"/></div>
+              <div className="mt-4"><label className="pub-label">Confirm password</label>
+                <input required type="password" minLength={6} className="pub-input" value={pw2} onChange={(e) => setPw2(e.target.value)} data-testid="reset-pw2"/></div>
+              {err && <div className="mt-4 p-3 rounded-lg border border-red-900 bg-red-950/30 text-sm text-red-300">{err}</div>}
+              <button disabled={busy} className="pub-btn pub-btn-primary w-full mt-6" data-testid="reset-submit">
+                {busy ? "Resetting..." : "Reset password"}
+              </button>
+              <div className="text-center text-xs text-zinc-500 mt-6">
+                <Link to="/login" className="text-white hover:underline">← Back to login</Link>
+              </div>
+            </form>
+          )}
+        </div>
+      </section>
     </div>
   );
 }
