@@ -191,12 +191,13 @@ def _extract_phone_from_me(me) -> Optional[str]:
     return raw or None
 
 
-def _enrich_session(doc: dict, live: dict, sidecar_reachable: bool = True) -> dict:
+def _enrich_session(doc: dict, live: dict, sidecar_reachable: bool = True, include_qr: bool = True) -> dict:
     """Return a rich, unambiguous status shape for CRM consumers.
 
     connected: hard boolean — true only when Baileys confirms the socket is open.
     status: normalised string — connected|connecting|reconnecting|qr|pairing|logged_out|disconnected|unknown.
     phone: extracted E.164 number when known.
+    include_qr: when False, drop the (potentially large base64) qr/qrDataUrl fields — useful for LIST endpoints.
     """
     status = live.get("status") if live else None
     ready = bool(live.get("ready", False)) if live else False
@@ -207,7 +208,7 @@ def _enrich_session(doc: dict, live: dict, sidecar_reachable: bool = True) -> di
     else:
         # Session exists in DB but sidecar has no entry (e.g. after sidecar restart before session re-init)
         status_out = "disconnected"
-    return {
+    out = {
         "id": doc["slug"],
         "slug": doc["slug"],
         "status": status_out,
@@ -216,13 +217,27 @@ def _enrich_session(doc: dict, live: dict, sidecar_reachable: bool = True) -> di
         "phone": _extract_phone_from_me(live.get("me") if live else None),
         "me": live.get("me") if live else None,
         "hasQr": bool(live.get("hasQr", False) or (live.get("qrDataUrl") if live else None)) if live else False,
-        "qr": (live.get("qr") if live else None),
-        "qrDataUrl": (live.get("qrDataUrl") if live else None),
         "pairingCode": (live.get("pairingCode") if live else None),
         "lastError": (live.get("lastError") if live else None),
         "sidecar_reachable": sidecar_reachable,
         "checked_at": now_iso(),
     }
+    if include_qr:
+        out["qr"] = (live.get("qr") if live else None)
+        out["qrDataUrl"] = (live.get("qrDataUrl") if live else None)
+    return out
+
+
+async def _fetch_live_session(doc: dict) -> tuple:
+    """Ask the sidecar for a single session's live state.
+    Returns (live_dict, sidecar_reachable). live={} + reachable=True means the sidecar answered 404
+    (session unknown to sidecar — usually after a sidecar restart)."""
+    r = await sidecar_call("GET", f"/sessions/{doc['sidecar_id']}")
+    if r.status_code == 404:
+        return {}, True
+    if r.status_code >= 400:
+        return {}, False
+    return r.json(), True
 
 
 # ---------- Sessions ----------
@@ -236,7 +251,9 @@ async def list_sessions(user=Depends(require_active_user)):
     reachable = r.status_code < 400
     sidecar_list = (r.json() if reachable else {}).get("sessions", [])
     live = {s["id"]: s for s in sidecar_list}
-    out = [_enrich_session(d, live.get(d["sidecar_id"], {}), reachable) for d in docs]
+    # Dashboard still wants QR data on the list for the SessionCard's initial paint,
+    # but the per-session poll (get_session) will always be authoritative.
+    out = [_enrich_session(d, live.get(d["sidecar_id"], {}), reachable, include_qr=True) for d in docs]
     return {"sessions": out}
 
 @router.post("/sessions")
@@ -278,18 +295,8 @@ async def get_session(slug: str, user=Depends(require_active_user)):
     doc = await db.sessions.find_one({"owner_id": user["id"], "slug": slug})
     if not doc:
         raise HTTPException(status_code=404, detail=f"Session '{slug}' not found")
-    r = await sidecar_call("GET", f"/sessions/{doc['sidecar_id']}")
-    reachable = True
-    live: Dict[str, Any] = {}
-    if r.status_code == 404:
-        # Session exists in DB but not in sidecar (e.g. after sidecar restart / crash)
-        live, reachable = {}, True
-    elif r.status_code >= 400:
-        # Sidecar unreachable / errored
-        reachable = False
-    else:
-        live = r.json()
-    return _enrich_session(doc, live, reachable)
+    live, reachable = await _fetch_live_session(doc)
+    return _enrich_session(doc, live, reachable, include_qr=True)
 
 @router.delete("/sessions/{slug}")
 async def delete_session(slug: str, user=Depends(require_active_user)):
@@ -695,7 +702,9 @@ async def public_list_sessions(key=Depends(require_scope("sessions:read"))):
     r = await sidecar_call("GET", "/sessions")
     reachable = r.status_code < 400
     live = {s["id"]: s for s in (r.json().get("sessions", []) if reachable else [])}
-    return {"sessions": [_enrich_session(d, live.get(d["sidecar_id"], {}), reachable) for d in docs]}
+    # For CRM list polling we drop the large qrDataUrl blob — callers should GET the single
+    # session endpoint when they actually need the QR image.
+    return {"sessions": [_enrich_session(d, live.get(d["sidecar_id"], {}), reachable, include_qr=False) for d in docs]}
 
 
 @router.get("/v1/sessions/{slug}")
@@ -708,6 +717,7 @@ async def public_get_session(slug: str, key=Depends(require_scope("sessions:read
       - phone      string  : E.164 digits of the connected WhatsApp number (null when disconnected)
       - me         object  : Baileys user object {id, lid, name} (null when disconnected)
       - hasQr      bool    : QR is ready to be scanned
+      - qr / qrDataUrl     : QR text and PNG data-URL (present when hasQr=true)
       - lastError  string  : last disconnect / failure reason
       - sidecar_reachable  : false when our backend can't reach the WhatsApp engine
       - checked_at         : ISO 8601 timestamp of this response
@@ -715,15 +725,8 @@ async def public_get_session(slug: str, key=Depends(require_scope("sessions:read
     doc = await db.sessions.find_one({"owner_id": key["owner_id"], "slug": slug})
     if not doc:
         raise HTTPException(status_code=404, detail=f"Session '{slug}' not found")
-    r = await sidecar_call("GET", f"/sessions/{doc['sidecar_id']}")
-    if r.status_code == 404:
-        live, reachable = {}, True
-    elif r.status_code >= 400:
-        live, reachable = {}, False
-    else:
-        live = r.json()
-        reachable = True
-    return _enrich_session(doc, live, reachable)
+    live, reachable = await _fetch_live_session(doc)
+    return _enrich_session(doc, live, reachable, include_qr=True)
 
 
 @router.get("/v1/sessions/{slug}/status")
@@ -733,15 +736,8 @@ async def public_session_status(slug: str, key=Depends(require_scope("sessions:r
     doc = await db.sessions.find_one({"owner_id": key["owner_id"], "slug": slug})
     if not doc:
         raise HTTPException(status_code=404, detail=f"Session '{slug}' not found")
-    r = await sidecar_call("GET", f"/sessions/{doc['sidecar_id']}")
-    if r.status_code == 404:
-        live, reachable = {}, True
-    elif r.status_code >= 400:
-        live, reachable = {}, False
-    else:
-        live = r.json()
-        reachable = True
-    enriched = _enrich_session(doc, live, reachable)
+    live, reachable = await _fetch_live_session(doc)
+    enriched = _enrich_session(doc, live, reachable, include_qr=False)
     return {
         "id": enriched["id"],
         "connected": enriched["connected"],

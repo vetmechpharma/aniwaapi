@@ -64,6 +64,15 @@ New endpoints this iteration:
 - ✅ Frontend compiles cleanly, all public pages render with proper typography
 - ✅ **Iteration 3 (Feb 2026)**: admin user CRUD, per-user feature toggles, SMTP config, admin send-message, admin change-password, and OTP-based password reset — 21/21 backend tests pass; all frontend flows verified (see `/app/test_reports/iteration_3.json`).
 
+## Recently added (Feb 2026, iteration 4 — CRM connection-status bug fix)
+- **Bug fix**: `/api/v1/sessions*` now returns an unambiguous `connected` boolean, a normalised `status` string, and the E.164 `phone` — so any CRM can reliably decide whether it can send. Previously the response only had Baileys' raw `ready` field which CRMs looking for `connected` treated as offline.
+- **New endpoints**:
+  - `GET /api/v1/sessions/{slug}` — full enriched status of one session (returns 404 if not owned)
+  - `GET /api/v1/sessions/{slug}/status` — lightweight `{connected, status, phone}` for polling
+- **Enriched shape** — every endpoint (public + dashboard admin) returns: `{id, slug, status, connected, ready, phone, me, hasQr, pairingCode, lastError, sidecar_reachable, checked_at}` (+`qr`/`qrDataUrl` on single-session endpoints only).
+- `status='unknown'` is emitted ONLY when the WhatsApp engine (sidecar) itself is unreachable — no more false `unknown` when the sidecar is alive but the session just hasn't been scanned.
+- Regression: 12/12 pytest asserts pass — see `/app/backend/tests/test_iteration4_crm_status.py`.
+
 ## Recently added (Feb 2026, iteration 3)
 - **Admin: User CRUD** — add / edit / delete / suspend / approve, change plan, extend subscription days
 - **Admin: Reset user password** with optional email notification

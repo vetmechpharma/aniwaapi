@@ -43,7 +43,9 @@ print(r.json())`,
       "checked_at": "2026-02-14T10:22:31.456+00:00"
     }
   ]
-}`,
+}
+// NOTE: for efficient polling, the LIST endpoint omits the large \`qr\` / \`qrDataUrl\`
+// blobs. Fetch GET /api/v1/sessions/{slug} to receive them when hasQr = true.`,
   },
   {
     method: "GET",
