@@ -1,73 +1,93 @@
-# PRD – Unofficial WhatsApp API (Baileys)
+# PRD – Unofficial WhatsApp API SaaS (Baileys)
 
 ## Original problem statement
-> Can u able to build unofficial whatsapp api for my own server and own use not for marketing.
+> Build unofficial WhatsApp API for personal / server use, later extended into a multi-tenant SaaS with subscription plans, UPI QR payments, user registration + admin approval, suspension/deletion, forgot-password, and per-user isolation with plan enforcement.
 
 ## User personas
-- **Server operator (admin)** — connects WhatsApp numbers, configures rules, business hours, webhooks, generates API keys.
-- **CRM / external service** — consumes `/api/v1/*` with a scoped Bearer API key.
+- **SaaS admin (owner)** — manages users, plans, payments, billing settings. Unlimited access to all WhatsApp features.
+- **Subscriber (user)** — registers publicly, awaits approval, pays via UPI QR, uses isolated WhatsApp sessions/rules/webhooks/api-keys within plan limits.
+- **External CRM / consumer** — uses a subscriber's scoped Bearer API key against `/api/v1/*`.
 
-## Architecture
-- **Node.js Baileys sidecar** (`/app/wa-sidecar`, port 3002, 127.0.0.1 only). Multi-session via `@whiskeysockets/baileys`. Session auth stored under `/app/wa-sidecar/sessions/{id}/`. Emits `messages.upsert`, `messages.update`, `message-receipt.update`, `connection.update` → forwards to backend `/api/internal/incoming`.
-- **FastAPI backend** (`/app/backend/server.py`, port 8001, v1.1.0). JWT admin auth with cookies, brute-force lockout, API-key Bearer with scopes + rate limits, MongoDB storage, sidecar proxy, rule engine + business hours, webhook fan-out, WebSocket push (`/api/ws`), Swagger docs at `/docs`.
-- **React frontend** (`/app/frontend`). Brutalist terminal-style dashboard with live WS-driven updates.
-- **MongoDB** — users, api_keys, rules, webhooks, messages, business_hours.
-- **Supervisor** manages backend + frontend + wa_sidecar + mongodb + code-server + nginx.
+## Architecture (v2.0.0)
+### Backend (`/app/backend/`, port 8001)
+- **`core.py`** — env, Mongo client, JWT/bcrypt, auth deps (`get_current_user`, `require_admin`, `require_active_user`, `require_approved_user`), scope + rate limit, per-owner WSManager, QR helpers.
+- **`auth_and_internal.py`** — login (with brute-force lockout), refresh, logout, me + internal sidecar callback (message / status / connection) + WebSocket endpoint.
+- **`saas.py`** — register, forgot/reset password, admin (users approve/suspend/unsuspend/delete + reset-link generator), plans CRUD, payments verify/reject + screenshot, settings (UPI VPA), overview, billing summary + create-payment (QR PNG) + submit-utr + my-payments.
+- **`whatsapp_api.py`** — sessions/send/groups/rules/business-hours/webhooks/logs/api-keys/stats/public v1, all scoped by `owner_id`, sidecar IDs namespaced per-user (`u<12>_<slug>`), plan-limit enforcement (`max_sessions`, `max_messages_per_day`, `max_api_keys`).
+- **`server.py`** — assembler: routers + startup migrations (indexes, admin seed, default plans, billing settings, legacy sidecar-session backfill) + CORS + `/api/ws`.
 
-## Core requirements (static)
-1. Multi-session WhatsApp connectivity (QR + pairing code).
-2. Send text/media (image/video/audio/document) + broadcast + group management.
-3. Incoming capture → log + webhook fan-out + optional rule-based auto-reply.
-4. Rule engine: match_type ∈ {contains, exact, starts_with, regex}, per-session.
-5. **Business-hours mode**: skip auto-reply during working hours (human handles), send fallback outside.
-6. **Message status tracking**: sent/delivered/read ticks pushed via Baileys events.
-7. **WebSocket push** for real-time dashboard updates.
-8. Admin JWT login with **brute-force lockout** (5 fails → 15-min lock).
-9. Public API `/api/v1/*` with **per-key scopes + rate limits**.
-10. Tight CORS: explicit origins with credentials when `FRONTEND_ORIGIN` set; `*` w/o credentials otherwise.
-11. OpenAPI/Swagger at `/docs` + hand-authored API reference page.
+### Node.js Baileys sidecar (`/app/wa-sidecar/`, port 3002 internal)
+- Unchanged from v1.1. Session IDs are user-namespaced by backend before sidecar sees them.
 
-## Implemented
+### React frontend (`/app/frontend/`)
+- **Public**: `/login`, `/register`, `/forgot-password`, `/reset-password`, `/pricing`
+- **Subscriber**: Overview, Sessions, Send, Auto-Reply (rules + business hours), Webhooks, Logs (with status ticks), API Keys (scopes + rate), Billing (subscription summary, UPI QR + UTR submit, payment history), API Docs.
+- **Admin panel** (visible only to admin): Admin Home (stats), Users (approve / suspend / unsuspend / delete / reset-link), Plans (full CRUD), Payments (queue + verify/reject + screenshot viewer), Settings (UPI VPA + branding).
+- **Role-based sidebar** switches between "Console" and "Admin Panel".
+- Sidebar shows subscription card with plan name + days remaining for subscribers.
 
-### Iteration 1 (Jan 15, 2026)
-- Sidecar: sessions/send-text/send-media/broadcast/groups/participants
-- Backend: auth, sessions, send, broadcast, rules CRUD, webhooks CRUD+test, logs, api-keys, stats, internal callback, public v1
-- Rule engine (contains/exact/starts_with/regex), webhook fan-out
-- Frontend: Login, Overview, Sessions (QR+pairing), Send Playground, Auto-Reply, Webhooks, Logs, API Keys, API Docs
-- Admin seed on startup
+### MongoDB collections
+- `users` — email, password_hash, name, company, phone, alt_phone, location, role, status (pending/approved/suspended/deleted), current_plan_id, subscription_expires_at, failed_logins, locked_until, timestamps.
+- `plans` — name, description, price_inr, price_usd, validity_days, max_sessions, max_messages_per_day, max_api_keys, features[], active, sort_order.
+- `payments` — user_id, plan_id, amount, currency, upi_vpa, upi_url, reference, utr_number, screenshot_path, status (pending/submitted/verified/rejected), admin_notes, timestamps.
+- `password_resets` — user_id, email, token, expires_at, used, status, granted_by_admin.
+- `settings` — singleton `{key: billing}` with upi_vpa, upi_payee_name, contact_email/phone, company_name.
+- `sessions` — `{owner_id, slug, sidecar_id}` — maps user-facing slug ↔ globally-unique sidecar ID.
+- `daily_usage` — `{user_id, date, messages_sent}` — plan quota tracking.
+- `rules`, `webhooks`, `api_keys`, `messages`, `business_hours` — all now have `owner_id`.
 
-### Iteration 2 (Jan 15, 2026) — this session
-- **Business-hours mode**: `/api/business-hours/{session_id}` GET/PUT; per-session `enabled`, `timezone` (IANA), `days` (0=Mon..6=Sun), `start_time`/`end_time`, `fallback_message`, `also_use_rules_outside`. Handles overnight windows (e.g. 22:00→06:00). Rule engine skips replies during business hours; sends fallback outside (or rule match wins if `also_use_rules_outside`).
-- **Message status tracking**: sidecar hooks `messages.update` + `message-receipt.update`; backend maps 1→pending, 2→sent, 3→delivered, 4→read, 5→played. Logs page renders ✓ / ✓✓ / ✓✓ (blue) via Phosphor `Check`/`Checks`.
-- **WebSocket push** (`/api/ws`, cookie-auth): backend `WSManager` broadcasts `{type: message|status|connection}`. Frontend `RealtimeProvider` with auto-reconnect, heartbeat, per-type subscribe. Overview shows LIVE/OFFLINE badge; Logs updates in real-time.
-- **Per-API-key scopes** (`send:text`, `send:media`, `broadcast`, `sessions:read`, `groups:read`, `groups:write`, `logs:read`) + **rate limits** (req/min, 0 = unlimited). In-memory sliding-window per key. `require_scope()` dependency factory. UI: multi-toggle scope selector + rate limit input.
-- **Brute-force lockout**: track `failed_logins` + `locked_until` per user; 5 fails → 15-min lock; correct password during lock returns 429 with remaining time.
-- **CORS**: `FRONTEND_ORIGIN` env → explicit origins with `allow_credentials=True`; else `*` without credentials. Cookies use env-driven `COOKIE_SECURE` + `COOKIE_SAMESITE`.
-- **Public API additions**: `/api/v1/logs` (scope `logs:read`).
+## Multi-tenancy guarantees
+- Every WhatsApp-scoped endpoint filters `db.<coll>.find({owner_id: current_user.id, ...})`.
+- Session slugs are namespaced (`u{userIdShort}_{slug}`) before hitting sidecar — no cross-tenant collisions.
+- Incoming messages from sidecar are attributed via reverse `sidecar_id` lookup.
+- Public API `/api/v1/*` inherits owner from the API key. If owner is suspended, deleted, or subscription expired → all their keys stop working (402/403).
+- Admin has unlimited limits internally (`max_sessions=999`, `max_messages_per_day=1B`).
 
-## Test status
-- **Iteration 1**: 39/39 backend + 12/12 UI ✓
-- **Iteration 2**: 24/24 backend features validated (lockout, business hours logic, status mapping, scope enforcement, rate limit, WS auth/broadcast); UI verified via live screenshots on real connected session showing ✓✓ (delivered) and ◷ (pending) ticks.
+## Iteration 3 (this session) — SaaS features shipped
+1. **Registration** with full profile: name, company, email, phone, alt_phone, location.
+2. **Admin approval workflow**: pending → approved → (paid) → active.
+3. **Suspension** (with reason shown to user) + unsuspend + delete (cascade cleanup).
+4. **Admin-configurable plans** (name, INR + USD price, validity, max sessions/msgs/api-keys, features, active, sort_order) with 4 seeded defaults (Free Trial, Basic, Pro, Enterprise).
+5. **UPI QR payment flow**: user picks plan → backend builds `upi://pay?...` URL → renders PNG QR (base64) → user pays → submits UTR + optional screenshot → admin verifies from panel → subscription activates (extends if still valid).
+6. **Forgot-password (admin-mediated)**: user submits → admin generates one-time reset link (24h) → copies to share → user resets.
+7. **Plan enforcement**: max_sessions blocks session create (402), max_messages_per_day blocks send (429), max_api_keys blocks key create (402).
+8. **CORS + cookies** already hardened in iteration 2 via `FRONTEND_ORIGIN` / `COOKIE_SECURE`.
+9. **Public `/pricing` page** with plan cards and CTA.
+
+## Tested (curl end-to-end)
+- ✅ Register → login blocked (pending) → admin approves → login OK
+- ✅ Approved user without subscription → 402 on protected routes; billing summary OK
+- ✅ UPI VPA save → create-payment returns QR PNG + upi:// URL + reference
+- ✅ Submit-UTR → admin sees in "submitted" queue → verify → subscription active (30 days)
+- ✅ Session create allowed; second session blocked (plan limit = 1)
+- ✅ Forgot-password → admin generates link → reset with new password → old rejected, new accepted
+- ✅ Admin suspend → user login blocked with reason; delete → cascade cleanup
+- ✅ Admin overview counters correct
+- ✅ Existing 'test' session (real WhatsApp) backfilled to admin ownership, still fully functional
 
 ## Prioritized backlog
 ### P1
-- Split `server.py` (~970 lines) into per-domain routers.
-- Contacts sync + tagging (foundation for segmented broadcast).
-- Groups management UI (API works, UI missing).
+- **Payment gateway automation**: swap manual UPI → Razorpay UPI intent (auto-verify via webhook).
+- **Email service** (Resend/SendGrid): auto-send approval, reset link, payment verified, expiry warning.
+- **Renewal reminders**: cron → warn users 7d/3d/1d before expiry.
+- **Invoice PDF** generation on verified payment.
 
 ### P2
-- Business-hours holiday exceptions (e.g. "closed Dec 25").
-- Delayed / typing-indicator auto-reply for more human feel.
-- Rate-limit sliding-window backed by Mongo (survives restart + multi-worker).
-- Per-scope rate limits (e.g. broadcast burst limits).
-- Export logs to CSV.
+- Contacts tagging + segmented broadcast.
+- Groups management UI (currently only via API).
+- Admin: bulk approve, bulk plan assign, revenue report.
+- Rate-limit sliding-window backed by Mongo/Redis (survives restart + multi-worker).
+- Team members per subscriber account.
 
 ### Nice-to-have
-- Multi-tenant admin users with roles.
-- Message templates library (reusable snippets with variables).
-- Dashboard notifications (in-tab sound / desktop notification on incoming).
+- 2FA (TOTP) for admin accounts.
+- Audit log (who did what, when).
+- Coupon codes / prorated upgrades.
+- API-key IP allow-listing.
 
 ## Next action items
-1. Add contact tagging + segmented broadcast (turns this into a small CRM messaging hub).
-2. Groups management UI.
-3. Consider splitting `server.py` before more features land.
+1. Log in as admin → `/admin/settings` → set your **real UPI VPA + name** (right now demo is `admin@ybl`).
+2. `/admin/plans` → edit prices / features to match your real offering.
+3. Share `/register` and `/pricing` URLs with subscribers.
+4. Add email integration (P1) when volume grows.
+5. Consider Razorpay/Stripe for automated payment verification.

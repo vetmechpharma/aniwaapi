@@ -96,8 +96,17 @@ export default function Login() {
             {loading ? "AUTHENTICATING..." : "> ENTER"}
           </button>
 
-          <div className="mt-6 pt-6 border-t border-zinc-800 mono text-[10px] text-zinc-600 uppercase tracking-widest text-center">
-            [ default seed: admin@example.com / admin123 ]
+          <div className="mt-6 pt-6 border-t border-zinc-800 space-y-3">
+            <div className="flex justify-between mono text-[10px] uppercase tracking-widest">
+              <a href="/forgot-password" className="text-zinc-400 hover:text-[#00E559]" data-testid="link-forgot">Forgot password?</a>
+              <a href="/register" className="text-[#00E559] hover:underline" data-testid="link-register">Create account →</a>
+            </div>
+            <div className="mono text-[10px] text-zinc-600 uppercase tracking-widest text-center">
+              [ default seed: admin@example.com / admin123 ]
+            </div>
+            <div className="mono text-[10px] text-center">
+              <a href="/pricing" className="text-zinc-400 hover:text-[#00E559]" data-testid="link-pricing">View pricing plans →</a>
+            </div>
           </div>
         </form>
       </div>

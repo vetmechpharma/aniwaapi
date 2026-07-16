@@ -87,6 +87,7 @@ Pygments==2.20.0
 PyJWT==2.13.0
 pymongo==4.6.3
 pyparsing==3.3.2
+pypng==0.20220715.0
 pytest==9.1.1
 pytest-xdist==3.8.0
 python-dateutil==2.9.0.post0
@@ -95,6 +96,7 @@ python-jose==3.5.0
 python-multipart==0.0.32
 pytokens==0.4.1
 PyYAML==6.0.3
+qrcode==7.4.2
 referencing==0.37.0
 regex==2026.7.10
 requests==2.34.2
