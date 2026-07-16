@@ -28,7 +28,7 @@ function BusinessHoursPanel({ sessionId }) {
     return (
       <div className="wa-card p-6 mb-6" data-testid="business-hours-empty">
         <div className="flex items-center gap-2 mb-2">
-          <Clock size={16} color="#00E559"/>
+          <Clock size={16} color="#25D366"/>
           <div className="mono text-xs uppercase tracking-widest text-white">Business Hours</div>
         </div>
         <div className="mono text-[11px] text-zinc-500">Select a session below (or create one) to configure business hours for it.</div>
@@ -65,8 +65,8 @@ function BusinessHoursPanel({ sessionId }) {
     <div className="wa-card p-6 mb-6" data-testid={`business-hours-${sessionId}`}>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <Clock size={16} color="#00E559"/>
-          <div className="mono text-xs uppercase tracking-widest text-white">Business Hours — <span className="text-[#00E559]">{sessionId}</span></div>
+          <Clock size={16} color="#25D366"/>
+          <div className="mono text-xs uppercase tracking-widest text-white">Business Hours — <span className="text-[#25D366]">{sessionId}</span></div>
         </div>
         <label className="mono text-xs cursor-pointer flex items-center gap-2">
           <input type="checkbox" checked={!!bh.enabled} onChange={(e) => setBh({ ...bh, enabled: e.target.checked })} data-testid="bh-enabled"/>
@@ -252,7 +252,7 @@ export default function Rules() {
                 <tr key={r.id} data-testid={`rule-row-${r.id}`}>
                   <td className="mono">{r.session_id}</td>
                   <td className="mono text-zinc-400">{r.match_type}</td>
-                  <td className="mono text-[#00E559]">{r.trigger}</td>
+                  <td className="mono text-[#25D366]">{r.trigger}</td>
                   <td className="text-zinc-300 max-w-md truncate">{r.response}</td>
                   <td>
                     <label className="mono text-xs cursor-pointer">

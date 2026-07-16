@@ -71,7 +71,7 @@ function SessionCard({ s, onDelete, onRefresh }) {
       {detail?.pairingCode && !detail?.ready && (
         <div className="my-4">
           <div className="mono text-[10px] text-zinc-500 uppercase mb-2">PAIRING CODE</div>
-          <div className="mono text-2xl font-bold text-[#00E559] tracking-widest" data-testid={`pair-code-${s.id}`}>
+          <div className="mono text-2xl font-bold text-[#25D366] tracking-widest" data-testid={`pair-code-${s.id}`}>
             {detail.pairingCode}
           </div>
           <div className="mono text-[10px] text-zinc-500 mt-1">

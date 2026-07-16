@@ -52,7 +52,7 @@ export default function ApiKeys() {
         <div>
           <div className="mono text-[11px] uppercase tracking-widest text-zinc-500 mb-1">/api-keys</div>
           <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-white">API Keys</h1>
-          <p className="text-zinc-400 mt-2 text-sm">Bearer tokens with scopes + rate limits for the public API at <code className="mono text-[#00E559]">/api/v1/*</code>.</p>
+          <p className="text-zinc-400 mt-2 text-sm">Bearer tokens with scopes + rate limits for the public API at <code className="mono text-[#25D366]">/api/v1/*</code>.</p>
         </div>
         <button className="wa-btn wa-btn-primary" onClick={() => setCreating(true)} data-testid="new-key-btn">
           <Plus size={14}/> NEW KEY
@@ -103,10 +103,10 @@ export default function ApiKeys() {
       )}
 
       {newKey && (
-        <div className="wa-card p-6 mb-6 border-[#00E559]" data-testid="new-key-modal">
-          <div className="mono text-xs uppercase tracking-widest text-[#00E559] mb-2">! COPY NOW - shown only once</div>
+        <div className="wa-card p-6 mb-6 border-[#25D366]" data-testid="new-key-modal">
+          <div className="mono text-xs uppercase tracking-widest text-[#25D366] mb-2">! COPY NOW - shown only once</div>
           <div className="flex items-center gap-3 p-3 bg-black border border-zinc-800">
-            <code className="mono text-sm text-[#00E559] break-all flex-1" data-testid="new-key-value">{newKey.key}</code>
+            <code className="mono text-sm text-[#25D366] break-all flex-1" data-testid="new-key-value">{newKey.key}</code>
             <button
               className="wa-btn wa-btn-secondary shrink-0"
               onClick={async () => { await navigator.clipboard.writeText(newKey.key); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
@@ -138,7 +138,7 @@ export default function ApiKeys() {
                   <td className="text-white">{k.name}</td>
                   <td className="mono text-zinc-400">{k.key_masked}</td>
                   <td className="mono text-[10px] text-zinc-400 max-w-xs">
-                    {(k.scopes && k.scopes.length) ? k.scopes.join(", ") : <span className="text-[#00E559]">full</span>}
+                    {(k.scopes && k.scopes.length) ? k.scopes.join(", ") : <span className="text-[#25D366]">full</span>}
                   </td>
                   <td className="mono">{k.rate_limit_per_minute || <span className="text-zinc-500">∞</span>}</td>
                   <td className="mono text-zinc-500">{new Date(k.created_at).toLocaleDateString()}</td>

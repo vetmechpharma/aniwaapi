@@ -44,7 +44,7 @@ export default function DashboardLayout() {
     <div className="min-h-screen flex" data-testid="dashboard-shell">
       <aside className="w-64 border-r border-zinc-800 bg-black flex flex-col shrink-0">
         <div className="p-6 border-b border-zinc-800 flex items-center gap-2">
-          <Terminal size={22} weight="bold" color="#00E559" />
+          <Terminal size={22} weight="bold" color="#25D366" />
           <div>
             <div className="mono text-sm font-bold text-white">WA_API</div>
             <div className="mono text-[10px] text-zinc-500 uppercase tracking-widest">
@@ -96,7 +96,7 @@ export default function DashboardLayout() {
             <div className="mono text-[9px] uppercase text-zinc-600 mb-1">Subscription</div>
             <div className="mono text-xs text-white">{summary?.plan?.name || "No plan"}</div>
             {summary?.days_left !== null && summary?.days_left !== undefined && (
-              <div className={"mono text-[10px] mt-1 " + (summary.days_left > 3 ? "text-[#00E559]" : "text-yellow-500")}>
+              <div className={"mono text-[10px] mt-1 " + (summary.days_left > 3 ? "text-[#25D366]" : "text-yellow-500")}>
                 {summary.days_left} days left
               </div>
             )}
@@ -107,7 +107,7 @@ export default function DashboardLayout() {
         <div className="p-4 border-t border-zinc-800">
           <div className="mono text-[10px] text-zinc-500 uppercase mb-1">Signed in as</div>
           <div className="mono text-xs text-white truncate">{user?.email}</div>
-          {isAdmin && <div className="mono text-[10px] text-[#00E559] mt-1">◆ ADMIN</div>}
+          {isAdmin && <div className="mono text-[10px] text-[#25D366] mt-1">◆ ADMIN</div>}
           <button
             className="wa-btn wa-btn-secondary w-full justify-center mt-3"
             onClick={async () => { await logout(); navigate("/login"); }}

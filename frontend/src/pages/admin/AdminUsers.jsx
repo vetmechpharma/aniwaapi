@@ -102,7 +102,7 @@ export default function AdminUsers() {
       {addOpen && (
         <div className="wa-card p-6 mb-6" data-testid="add-user-form">
           <div className="flex items-center justify-between mb-4">
-            <div className="mono text-sm uppercase text-white flex items-center gap-2"><UserPlus size={16} color="#00E559"/> Add User Manually</div>
+            <div className="mono text-sm uppercase text-white flex items-center gap-2"><UserPlus size={16} color="#25D366"/> Add User Manually</div>
             <button className="wa-btn wa-btn-secondary" onClick={() => setAddOpen(false)}><XCircle size={12}/></button>
           </div>
           <form onSubmit={createUser} className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -153,11 +153,11 @@ export default function AdminUsers() {
       )}
 
       {linkModal && (
-        <div className="wa-card p-6 mb-6 border-[#00E559]" data-testid="reset-link-modal">
-          <div className="mono text-xs uppercase text-[#00E559] mb-2">! COPY THIS RESET LINK for {linkModal.user.email}</div>
+        <div className="wa-card p-6 mb-6 border-[#25D366]" data-testid="reset-link-modal">
+          <div className="mono text-xs uppercase text-[#25D366] mb-2">! COPY THIS RESET LINK for {linkModal.user.email}</div>
           <div className="mono text-[11px] text-zinc-500 mb-3">Valid for 24h. Share via WhatsApp / SMS / email.</div>
           <div className="p-3 bg-black border border-zinc-800 flex items-center gap-2">
-            <code className="mono text-xs text-[#00E559] break-all flex-1" data-testid="reset-link-value">
+            <code className="mono text-xs text-[#25D366] break-all flex-1" data-testid="reset-link-value">
               {window.location.origin}{linkModal.path}
             </code>
             <button className="wa-btn wa-btn-secondary shrink-0" onClick={() => navigator.clipboard.writeText(`${window.location.origin}${linkModal.path}`)}>
@@ -181,7 +181,7 @@ export default function AdminUsers() {
                 <td className="text-zinc-400">{u.company || "—"}</td>
                 <td className="mono text-zinc-400">{u.phone || "—"}{u.alt_phone && <div className="text-[10px] text-zinc-600">alt: {u.alt_phone}</div>}</td>
                 <td className="text-zinc-400 text-sm">{u.location || "—"}</td>
-                <td className="mono text-[#00E559]">{u.plan_name || "—"}</td>
+                <td className="mono text-[#25D366]">{u.plan_name || "—"}</td>
                 <td className="mono text-zinc-400 text-xs">{u.subscription_expires_at ? new Date(u.subscription_expires_at).toLocaleDateString() : "—"}</td>
                 <td><StatusPill s={u.status}/></td>
                 <td className="mono text-zinc-500 text-xs">{new Date(u.created_at).toLocaleDateString()}</td>

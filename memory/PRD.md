@@ -23,7 +23,14 @@
 ### Admin
 - `/admin` (Overview), `/admin/users`, `/admin/plans`, `/admin/payments`, `/admin/messages`, `/admin/settings`
 
-## Architecture (v2.1.0)
+## Architecture (v2.2.0)
+### Brand palette (WhatsApp-inspired)
+- Primary: `#25D366` (WhatsApp brand green)
+- Hover / secondary: `#128C7E` (darker teal-green)
+- Deep background gradient: `#08110D` with soft `#075E54` (WhatsApp header) radial glow
+- Read tick blue: `#34B7F1` (WhatsApp read-blue)
+- Icons: `ChatTeardrop`, `ChatCircleDots`, `ChatsCircle`, `ChatDots`, `PaperPlaneTilt`, `Check`/`Checks`, `Broadcast`, `PlugsConnected` (Phosphor Icons — chat-bubble family, no direct WhatsApp logo copy)
+
 ### Frontend design system (2 aesthetics)
 - **Public / marketing** = elegant editorial. **Instrument Serif** italic for display + **Inter** for body. Dark background with soft radial-glow gradients + subtle grid. Pill buttons, rounded cards, generous whitespace, subtle green accents.
 - **Dashboard** = brutalist terminal (IBM Plex Sans + JetBrains Mono, sharp borders, neon green). Kept from v2.0.

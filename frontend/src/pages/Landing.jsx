@@ -6,13 +6,13 @@ import PublicFooter from "@/components/PublicFooter";
 import { useSiteInfo } from "@/lib/siteInfo";
 import {
   Broadcast, ChatCircleDots, PlugsConnected, Key, Clock, ShieldCheck,
-  Lightning, ArrowRight, Check, PaperPlaneTilt, UsersThree, QrCode,
+  Lightning, ArrowRight, Check, PaperPlaneTilt, UsersThree, QrCode, ChatTeardrop, ChatsCircle,
 } from "@phosphor-icons/react";
 
 const featureList = [
-  { icon: Broadcast, title: "Multi-session WhatsApp", body: "Connect multiple WhatsApp numbers to a single dashboard. Scan QR or use pairing code — auto-reconnect on restart." },
+  { icon: ChatsCircle, title: "Multi-session chat", body: "Connect multiple numbers to a single dashboard. Scan QR or use pairing code — auto-reconnect on restart." },
   { icon: PaperPlaneTilt, title: "Send text, media & broadcasts", body: "Text, images, video, audio, documents. Broadcast to hundreds with built-in throttle to protect your number." },
-  { icon: ChatCircleDots, title: "Rule-based auto-reply", body: "Keyword rules (contains / exact / starts-with / regex) with per-session control, and business-hours mode for office hours." },
+  { icon: ChatTeardrop, title: "Rule-based auto-reply", body: "Keyword rules (contains / exact / starts-with / regex) with per-session control, and business-hours mode for office hours." },
   { icon: PlugsConnected, title: "Webhooks for CRM", body: "Forward every incoming message to your own server or CRM via HTTP. Retry-friendly with delivery status logging." },
   { icon: Key, title: "Scoped API keys", body: "Fine-grained scopes (send:text, send:media, broadcast, sessions:read, logs:read…) with per-key rate limits." },
   { icon: Clock, title: "Delivery ticks & live logs", body: "See ✓ / ✓✓ / ✓✓ (blue) status in real time via WebSocket. Full searchable message history." },
@@ -40,18 +40,24 @@ export default function Landing() {
       <PublicNav brand={info.company_name}/>
 
       {/* Hero */}
-      <section className="relative pt-20 md:pt-28 pb-20 md:pb-32">
+      <section className="relative pt-20 md:pt-28 pb-20 md:pb-32 overflow-hidden">
         <div className="pub-grid-bg absolute inset-0 pointer-events-none"/>
+        {/* Chat-bubble decorations (WhatsApp-inspired) */}
+        <div className="pub-bubble hidden md:block" style={{ top: '18%', left: '4%', width: 200, height: 60 }}/>
+        <div className="pub-bubble left hidden md:block" style={{ top: '32%', right: '5%', width: 160, height: 52 }}/>
+        <div className="pub-bubble hidden lg:block" style={{ top: '58%', left: '8%', width: 140, height: 44 }}/>
+        <div className="pub-bubble left hidden lg:block" style={{ top: '70%', right: '7%', width: 180, height: 50 }}/>
+
         <div className="max-w-4xl mx-auto px-6 text-center relative">
           <div className="inline-flex items-center gap-2 pub-badge mb-8">
             <Lightning size={12} weight="fill"/> Self-hosted unofficial WhatsApp API
           </div>
           <h1 className="mb-6">
-            Your own <span className="accent-serif italic">WhatsApp</span> API, <br/>
+            Your own <span className="accent-serif italic">chat</span> API, <br/>
             live in <span className="accent-serif italic">minutes.</span>
           </h1>
           <p className="lead max-w-2xl mx-auto mb-10">
-            A clean, developer-first WhatsApp automation platform.
+            A clean, developer-first messaging automation platform.
             Send messages, receive webhooks, auto-reply, and integrate with any CRM — from a single elegant dashboard.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">

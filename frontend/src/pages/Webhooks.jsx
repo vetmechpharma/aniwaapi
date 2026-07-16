@@ -76,7 +76,7 @@ export default function Webhooks() {
               {items.map(w => (
                 <tr key={w.id}>
                   <td className="mono">{w.session_id}</td>
-                  <td className="mono text-[#00E559] truncate max-w-xs">{w.url}</td>
+                  <td className="mono text-[#25D366] truncate max-w-xs">{w.url}</td>
                   <td className="mono text-zinc-500">{w.last_fired_at ? new Date(w.last_fired_at).toLocaleString() : "—"}</td>
                   <td className="mono text-zinc-400">{w.last_status || "—"}</td>
                   <td>

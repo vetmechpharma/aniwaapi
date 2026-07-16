@@ -68,7 +68,7 @@ export default function AdminPayments() {
                 <td className="mono">{p.plan_name}</td>
                 <td className="mono text-white">{p.currency === "INR" ? "₹" : "$"}{p.amount}</td>
                 <td className="mono text-xs text-zinc-400">{p.reference}</td>
-                <td className="mono text-xs text-[#00E559]">{p.utr_number || "—"}</td>
+                <td className="mono text-xs text-[#25D366]">{p.utr_number || "—"}</td>
                 <td>
                   {p.screenshot_path ? (
                     <a href={`${API}/admin/payments/${p.id}/screenshot`} target="_blank" rel="noreferrer" className="wa-btn wa-btn-secondary">

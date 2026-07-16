@@ -37,7 +37,7 @@ import AdminMessages from "@/pages/admin/AdminMessages";
 function Loader() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-black">
-      <div className="mono text-[#00E559] text-sm">CONNECTING<span className="blink">_</span></div>
+      <div className="mono text-[#25D366] text-sm">CONNECTING<span className="blink">_</span></div>
     </div>
   );
 }

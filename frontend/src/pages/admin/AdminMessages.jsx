@@ -29,16 +29,16 @@ export default function AdminMessages() {
       ) : (
         <div className="space-y-3">
           {items.map(m => (
-            <div key={m.id} className={"wa-card p-5 " + (m.status === "new" ? "border-[#00E559]" : "")} data-testid={`message-${m.id}`}>
+            <div key={m.id} className={"wa-card p-5 " + (m.status === "new" ? "border-[#25D366]" : "")} data-testid={`message-${m.id}`}>
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <div className="mono text-sm text-white flex items-center gap-2">
-                    <ChatCircleDots size={14} className="text-[#00E559]"/> {m.name}
+                    <ChatCircleDots size={14} className="text-[#25D366]"/> {m.name}
                     {m.status === "new" && <span className="wa-badge wa-badge-green">NEW</span>}
                   </div>
                   <div className="mono text-xs text-zinc-400 mt-1">
-                    <a href={`mailto:${m.email}`} className="hover:text-[#00E559]">{m.email}</a>
-                    {m.phone && <> · <a href={`tel:${m.phone}`} className="hover:text-[#00E559]">{m.phone}</a></>}
+                    <a href={`mailto:${m.email}`} className="hover:text-[#25D366]">{m.email}</a>
+                    {m.phone && <> · <a href={`tel:${m.phone}`} className="hover:text-[#25D366]">{m.phone}</a></>}
                   </div>
                 </div>
                 <div className="mono text-[11px] text-zinc-500">{new Date(m.created_at).toLocaleString()}</div>

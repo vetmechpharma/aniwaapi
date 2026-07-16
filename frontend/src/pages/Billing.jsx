@@ -98,7 +98,7 @@ export default function Billing() {
       </div>
 
       {err && <div className="wa-card p-4 mb-4 border-red-800 mono text-xs text-red-400" data-testid="billing-error">ERR: {err}</div>}
-      {msg && <div className="wa-card p-4 mb-4 border-[#00E559] mono text-xs text-[#00E559]" data-testid="billing-msg">{msg}</div>}
+      {msg && <div className="wa-card p-4 mb-4 border-[#25D366] mono text-xs text-[#25D366]" data-testid="billing-msg">{msg}</div>}
 
       {/* Current plan summary */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
@@ -127,9 +127,9 @@ export default function Billing() {
 
       {/* Active payment (QR + submit UTR) */}
       {activePayment ? (
-        <div className="wa-card p-6 mb-8 border-[#00E559]" data-testid="active-payment">
+        <div className="wa-card p-6 mb-8 border-[#25D366]" data-testid="active-payment">
           <div className="flex items-center gap-2 mb-4">
-            <QrCode size={20} color="#00E559"/>
+            <QrCode size={20} color="#25D366"/>
             <div className="mono text-sm uppercase text-white">Pay via UPI — {activePayment.plan_name} · ₹{activePayment.amount}</div>
           </div>
 
@@ -141,10 +141,10 @@ export default function Billing() {
                   <img src={activePayment.qr_data_url} alt="UPI QR" className="w-64 h-64" data-testid="upi-qr"/>
                 </div>
                 <div className="mono text-[11px] text-zinc-400 mt-3">
-                  <div>VPA: <span className="text-[#00E559]">{activePayment.upi_vpa}</span></div>
-                  <div>Name: <span className="text-[#00E559]">{activePayment.upi_payee_name}</span></div>
-                  <div>Ref: <span className="text-[#00E559]">{activePayment.reference}</span></div>
-                  <div>Amount: <span className="text-[#00E559]">₹{activePayment.amount}</span></div>
+                  <div>VPA: <span className="text-[#25D366]">{activePayment.upi_vpa}</span></div>
+                  <div>Name: <span className="text-[#25D366]">{activePayment.upi_payee_name}</span></div>
+                  <div>Ref: <span className="text-[#25D366]">{activePayment.reference}</span></div>
+                  <div>Amount: <span className="text-[#25D366]">₹{activePayment.amount}</span></div>
                 </div>
                 <a
                   href={activePayment.upi_url} className="wa-btn wa-btn-secondary mt-3"
@@ -184,7 +184,7 @@ export default function Billing() {
                 <div className="mono text-[10px] text-zinc-500">{p.validity_days} days</div>
                 <ul className="mt-3 space-y-1 flex-1">
                   {(p.features || []).slice(0, 4).map((f) => (
-                    <li key={f} className="mono text-[11px] text-zinc-300 flex items-start gap-1"><Check size={10} className="text-[#00E559] mt-1"/>{f}</li>
+                    <li key={f} className="mono text-[11px] text-zinc-300 flex items-start gap-1"><Check size={10} className="text-[#25D366] mt-1"/>{f}</li>
                   ))}
                 </ul>
                 <button className="wa-btn wa-btn-primary mt-4" disabled={busy} onClick={() => startPayment(p.id, "INR")} data-testid={`pay-plan-${p.id}`}>PAY WITH UPI</button>

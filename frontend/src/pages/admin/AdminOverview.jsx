@@ -8,7 +8,7 @@ function Stat({ label, value, icon: Icon, testid, to, warn }) {
     <>
       <div className="flex items-start justify-between mb-4">
         <span className="mono text-[11px] uppercase tracking-widest text-zinc-500">{label}</span>
-        <Icon size={18} weight="bold" color={warn ? "#FFB800" : "#00E559"} />
+        <Icon size={18} weight="bold" color={warn ? "#FFB800" : "#25D366"} />
       </div>
       <div className="mono text-4xl font-bold text-white">{value ?? "—"}</div>
       {to && <div className="mono text-[10px] text-zinc-500 mt-3 flex items-center gap-1">MANAGE <ArrowRight size={10}/></div>}
@@ -41,17 +41,17 @@ export default function AdminOverview() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="wa-card p-6">
           <div className="mono text-xs uppercase text-zinc-500 mb-3">Users</div>
-          <div className="mono text-sm text-white">Total: <span className="text-[#00E559]">{data?.users?.total || 0}</span></div>
+          <div className="mono text-sm text-white">Total: <span className="text-[#25D366]">{data?.users?.total || 0}</span></div>
           <div className="mono text-sm text-white">Pending: <span className="text-yellow-500">{data?.users?.pending || 0}</span></div>
-          <div className="mono text-sm text-white">Active: <span className="text-[#00E559]">{data?.users?.active || 0}</span></div>
+          <div className="mono text-sm text-white">Active: <span className="text-[#25D366]">{data?.users?.active || 0}</span></div>
           <div className="mono text-sm text-white">Suspended: <span className="text-red-400">{data?.users?.suspended || 0}</span></div>
           <Link to="/admin/users" className="wa-btn wa-btn-secondary mt-4">MANAGE USERS →</Link>
         </div>
         <div className="wa-card p-6">
           <div className="mono text-xs uppercase text-zinc-500 mb-3">Payments</div>
           <div className="mono text-sm text-white">Awaiting Verification: <span className="text-yellow-500">{data?.payments?.awaiting_verification || 0}</span></div>
-          <div className="mono text-sm text-white">Verified: <span className="text-[#00E559]">{data?.payments?.verified || 0}</span></div>
-          <div className="mono text-sm text-white mt-2">Plans configured: <span className="text-[#00E559]">{data?.plans_count || 0}</span></div>
+          <div className="mono text-sm text-white">Verified: <span className="text-[#25D366]">{data?.payments?.verified || 0}</span></div>
+          <div className="mono text-sm text-white mt-2">Plans configured: <span className="text-[#25D366]">{data?.plans_count || 0}</span></div>
           <div className="flex gap-2 mt-4">
             <Link to="/admin/payments" className="wa-btn wa-btn-secondary">PAYMENTS</Link>
             <Link to="/admin/plans" className="wa-btn wa-btn-secondary">PLANS</Link>

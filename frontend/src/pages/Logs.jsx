@@ -8,7 +8,7 @@ function StatusTicks({ status, direction }) {
   if (s === "pending") return <span className="mono text-[10px] text-zinc-500" title="pending">◷</span>;
   if (s === "sent") return <Check size={14} weight="bold" className="text-zinc-400" data-status="sent" />;
   if (s === "delivered") return <Checks size={14} weight="bold" className="text-zinc-400" data-status="delivered" />;
-  if (s === "read" || s === "played") return <Checks size={14} weight="bold" className="text-[#3388FF]" data-status="read" />;
+  if (s === "read" || s === "played") return <Checks size={14} weight="bold" className="text-[#34B7F1]" data-status="read" />;
   return <span className="mono text-[10px] text-zinc-500">{s}</span>;
 }
 
@@ -86,7 +86,7 @@ export default function Logs() {
             <tbody>
               {logs.map(m => (
                 <tr key={m.id || `${m.message_id}-${m.timestamp}`} data-testid={`log-row-${m.id || m.message_id}`}>
-                  <td className={"mono font-bold " + (m.direction === "incoming" ? "text-[#00E559]" : "text-[#3388FF]")}>
+                  <td className={"mono font-bold " + (m.direction === "incoming" ? "text-[#25D366]" : "text-[#34B7F1]")}>
                     {m.direction === "incoming" ? "◀ IN" : "▶ OUT"}
                   </td>
                   <td className="mono text-zinc-500 whitespace-nowrap">{new Date((m.timestamp || 0) * 1000).toLocaleString()}</td>

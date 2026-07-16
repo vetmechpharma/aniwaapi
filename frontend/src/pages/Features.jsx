@@ -5,7 +5,7 @@ import { useSiteInfo } from "@/lib/siteInfo";
 import { Link } from "react-router-dom";
 import {
   Broadcast, ChatCircleDots, PlugsConnected, Key, Clock, ShieldCheck,
-  QrCode, UsersThree, PaperPlaneTilt, ChatDots, WhatsappLogo, Lightning, Check,
+  QrCode, UsersThree, PaperPlaneTilt, ChatDots, ChatTeardrop, Lightning, Check,
 } from "@phosphor-icons/react";
 
 const groups = [
@@ -14,7 +14,7 @@ const groups = [
     intro: "Send anything WhatsApp supports, at scale.",
     items: [
       { icon: PaperPlaneTilt, title: "Text messages", body: "Individual or broadcast text with template variables." },
-      { icon: WhatsappLogo, title: "Media", body: "Images, video, audio, PDF & documents up to 50 MB." },
+      { icon: ChatTeardrop, title: "Media", body: "Images, video, audio, PDF & documents up to 50 MB." },
       { icon: Broadcast, title: "Broadcasts", body: "Send to many recipients with a built-in throttle to protect your number." },
       { icon: UsersThree, title: "Groups (API)", body: "Create groups, add/remove members, promote/demote admins." },
     ]

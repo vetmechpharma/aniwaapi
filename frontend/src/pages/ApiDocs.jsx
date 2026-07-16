@@ -88,9 +88,9 @@ export default function ApiDocs() {
         <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-white">API Reference</h1>
         <p className="text-zinc-400 mt-2 text-sm max-w-2xl">
           Use these endpoints from your CRM, backend, or scripts. All calls require a Bearer API key
-          (create one in <span className="text-[#00E559] mono">API Keys</span>).
+          (create one in <span className="text-[#25D366] mono">API Keys</span>).
           Interactive Swagger UI:{" "}
-          <a className="text-[#00E559] underline mono" href={`${BASE}/docs`} target="_blank" rel="noreferrer" data-testid="swagger-link">
+          <a className="text-[#25D366] underline mono" href={`${BASE}/docs`} target="_blank" rel="noreferrer" data-testid="swagger-link">
             {BASE}/docs
           </a>
         </p>
@@ -98,12 +98,12 @@ export default function ApiDocs() {
 
       <div className="wa-card p-6 mb-8">
         <div className="mono text-xs uppercase tracking-widest text-zinc-500 mb-3">Base URL</div>
-        <code className="mono text-[#00E559] text-sm block break-all">{BASE}</code>
+        <code className="mono text-[#25D366] text-sm block break-all">{BASE}</code>
       </div>
 
       <div className="wa-card p-6 mb-8">
         <div className="mono text-xs uppercase tracking-widest text-zinc-500 mb-3">Authentication</div>
-        <p className="text-zinc-300 text-sm mb-3">Send your API key in the <code className="mono text-[#00E559]">Authorization</code> header on every request:</p>
+        <p className="text-zinc-300 text-sm mb-3">Send your API key in the <code className="mono text-[#25D366]">Authorization</code> header on every request:</p>
         <pre className="terminal">{`Authorization: Bearer YOUR_API_KEY`}</pre>
       </div>
 
@@ -145,7 +145,7 @@ export default function ApiDocs() {
 
       <h2 className="text-2xl font-medium text-white mt-10 mb-4">Notes</h2>
       <ul className="text-zinc-300 text-sm space-y-2 list-disc pl-6">
-        <li><span className="mono text-[#00E559]">to</span> can be a phone number with country code (digits only), or a full JID like <span className="mono">14155551234@s.whatsapp.net</span> / <span className="mono">12345-6789@g.us</span> for groups.</li>
+        <li><span className="mono text-[#25D366]">to</span> can be a phone number with country code (digits only), or a full JID like <span className="mono">14155551234@s.whatsapp.net</span> / <span className="mono">12345-6789@g.us</span> for groups.</li>
         <li>Media uploads are limited to 50 MB per file.</li>
         <li>This is an <strong>unofficial</strong> WhatsApp API. Use only for personal / server automation. WhatsApp may ban accounts if abused - do not use for marketing spam.</li>
         <li>Broadcasts are throttled internally (~500ms per recipient) to reduce ban risk.</li>

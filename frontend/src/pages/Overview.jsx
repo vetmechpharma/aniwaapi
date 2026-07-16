@@ -8,7 +8,7 @@ function Stat({ label, value, icon: Icon, testid, sub }) {
     <div className="wa-card p-6" data-testid={testid}>
       <div className="flex items-start justify-between mb-4">
         <span className="mono text-[11px] uppercase tracking-widest text-zinc-500">{label}</span>
-        <Icon size={18} weight="bold" color="#00E559" />
+        <Icon size={18} weight="bold" color="#25D366" />
       </div>
       <div className="mono text-4xl font-bold text-white tracking-tight">{value ?? "—"}</div>
       {sub && <div className="mono text-[11px] text-zinc-500 mt-2">{sub}</div>}
@@ -76,7 +76,7 @@ export default function Overview() {
         <div className="wa-card p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="mono text-xs uppercase tracking-widest text-zinc-500">Active Sessions</div>
-            <Link to="/app/sessions" className="mono text-xs text-[#00E559] hover:underline">MANAGE →</Link>
+            <Link to="/app/sessions" className="mono text-xs text-[#25D366] hover:underline">MANAGE →</Link>
           </div>
           {sessions.length === 0 ? (
             <div className="mono text-xs text-zinc-500 py-6 text-center border border-dashed border-zinc-800">[ NO ACTIVE SESSIONS ]</div>
@@ -98,7 +98,7 @@ export default function Overview() {
         <div className="wa-card p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="mono text-xs uppercase tracking-widest text-zinc-500">Recent Messages</div>
-            <Link to="/logs" className="mono text-xs text-[#00E559] hover:underline">VIEW ALL →</Link>
+            <Link to="/logs" className="mono text-xs text-[#25D366] hover:underline">VIEW ALL →</Link>
           </div>
           {logs.length === 0 ? (
             <div className="mono text-xs text-zinc-500 py-6 text-center border border-dashed border-zinc-800">[ NO MESSAGES YET ]</div>
@@ -106,7 +106,7 @@ export default function Overview() {
             <div className="space-y-1">
               {logs.map((m) => (
                 <div key={m.id || `${m.session_id}-${m.timestamp}-${m.remote_jid}-${m.text}`} className="mono text-[11px] flex items-center gap-3 py-1 border-b border-zinc-900">
-                  <span className={m.direction === "incoming" ? "text-[#00E559]" : "text-[#3388FF]"}>
+                  <span className={m.direction === "incoming" ? "text-[#25D366]" : "text-[#34B7F1]"}>
                     {m.direction === "incoming" ? "◀" : "▶"}
                   </span>
                   <span className="text-zinc-500 shrink-0">{new Date((m.timestamp || 0) * 1000).toLocaleTimeString()}</span>
