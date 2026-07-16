@@ -167,6 +167,40 @@ async function startSession(sessionId, opts = {}) {
     }
   });
 
+  // Message status updates (sent -> delivered -> read)
+  sock.ev.on('messages.update', async (updates) => {
+    for (const u of updates || []) {
+      const status = u.update?.status;
+      const messageId = u.key?.id;
+      if (!messageId || status === undefined || status === null) continue;
+      forwardToBackend({
+        type: 'status',
+        sessionId,
+        messageId,
+        remoteJid: u.key?.remoteJid || null,
+        fromMe: !!u.key?.fromMe,
+        status,
+      });
+    }
+  });
+
+  // Message receipt updates (also carries read receipts on some paths)
+  sock.ev.on('message-receipt.update', async (updates) => {
+    for (const u of updates || []) {
+      const rtype = u.receipt?.receiptTimestamp ? (u.receipt?.readTimestamp ? 4 : 3) : null;
+      const messageId = u.key?.id;
+      if (!messageId || !rtype) continue;
+      forwardToBackend({
+        type: 'status',
+        sessionId,
+        messageId,
+        remoteJid: u.key?.remoteJid || null,
+        fromMe: !!u.key?.fromMe,
+        status: rtype,
+      });
+    }
+  });
+
   // Optional: pairing code request
   if (opts.usePairingCode && opts.phoneNumber && !sock.authState.creds.registered) {
     // Baileys requires a short delay before requesting code

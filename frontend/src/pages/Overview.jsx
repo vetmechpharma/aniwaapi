@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { api } from "@/lib/api";
-import { ArrowUpRight, Broadcast, ChatCircleDots, PlugsConnected, PaperPlaneTilt } from "@phosphor-icons/react";
+import { api, useRealtime } from "@/lib/api";
+import { ArrowUpRight, Broadcast, ChatCircleDots, PlugsConnected, PaperPlaneTilt, CircleNotch } from "@phosphor-icons/react";
 import { Link } from "react-router-dom";
 
 function Stat({ label, value, icon: Icon, testid, sub }) {
@@ -20,6 +20,7 @@ export default function Overview() {
   const [stats, setStats] = useState(null);
   const [logs, setLogs] = useState([]);
   const [sessions, setSessions] = useState([]);
+  const { subscribe, connected } = useRealtime();
 
   async function load() {
     try {
@@ -36,20 +37,28 @@ export default function Overview() {
 
   useEffect(() => {
     load();
-    const t = setInterval(load, 5000);
-    return () => clearInterval(t);
-  }, []);
+    // Fallback poll every 15s in case WS drops silently
+    const t = setInterval(load, 15000);
+    const unsub1 = subscribe("message", (ev) => {
+      setLogs((prev) => [ev.message, ...prev].slice(0, 10));
+      setStats((prev) => prev ? { ...prev, messages_24h: (prev.messages_24h || 0) + 1 } : prev);
+    });
+    const unsub2 = subscribe("connection", () => { load(); });
+    return () => { clearInterval(t); unsub1(); unsub2(); };
+  }, [subscribe]);
 
   return (
     <div className="p-6 md:p-10">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <div className="mono text-[11px] uppercase tracking-widest text-zinc-500 mb-1">
+          <div className="mono text-[11px] uppercase tracking-widest text-zinc-500 mb-1 flex items-center gap-3">
             /overview
+            <span className={"wa-badge " + (connected ? "wa-badge-green" : "wa-badge-red")} data-testid="ws-status">
+              <span className={"wa-pip " + (connected ? "wa-pip-green" : "wa-pip-red")} />
+              {connected ? "LIVE" : "OFFLINE"}
+            </span>
           </div>
-          <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-white">
-            Command Center
-          </h1>
+          <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-white">Command Center</h1>
         </div>
         <Link to="/sessions" className="wa-btn wa-btn-primary" data-testid="quick-new-session">
           + NEW SESSION <ArrowUpRight size={14} weight="bold" />
@@ -66,28 +75,17 @@ export default function Overview() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="wa-card p-6">
           <div className="flex items-center justify-between mb-4">
-            <div className="mono text-xs uppercase tracking-widest text-zinc-500">
-              Active Sessions
-            </div>
-            <Link to="/sessions" className="mono text-xs text-[#00E559] hover:underline">
-              MANAGE →
-            </Link>
+            <div className="mono text-xs uppercase tracking-widest text-zinc-500">Active Sessions</div>
+            <Link to="/sessions" className="mono text-xs text-[#00E559] hover:underline">MANAGE →</Link>
           </div>
           {sessions.length === 0 ? (
-            <div className="mono text-xs text-zinc-500 py-6 text-center border border-dashed border-zinc-800">
-              [ NO ACTIVE SESSIONS ]
-            </div>
+            <div className="mono text-xs text-zinc-500 py-6 text-center border border-dashed border-zinc-800">[ NO ACTIVE SESSIONS ]</div>
           ) : (
             <div className="space-y-2">
               {sessions.map((s) => (
                 <div key={s.id} className="flex items-center justify-between py-2 border-b border-zinc-900">
                   <div className="flex items-center gap-3">
-                    <span
-                      className={
-                        "wa-pip " +
-                        (s.ready ? "wa-pip-green" : s.status === "qr" || s.status === "pairing" ? "wa-pip-yellow" : "wa-pip-red")
-                      }
-                    />
+                    <span className={"wa-pip " + (s.ready ? "wa-pip-green" : s.status === "qr" || s.status === "pairing" ? "wa-pip-yellow" : "wa-pip-red")} />
                     <span className="mono text-sm text-white">{s.id}</span>
                   </div>
                   <span className="mono text-[10px] uppercase text-zinc-500">{s.status}</span>
@@ -99,25 +97,19 @@ export default function Overview() {
 
         <div className="wa-card p-6">
           <div className="flex items-center justify-between mb-4">
-            <div className="mono text-xs uppercase tracking-widest text-zinc-500">
-              Recent Messages
-            </div>
-            <Link to="/logs" className="mono text-xs text-[#00E559] hover:underline">
-              VIEW ALL →
-            </Link>
+            <div className="mono text-xs uppercase tracking-widest text-zinc-500">Recent Messages</div>
+            <Link to="/logs" className="mono text-xs text-[#00E559] hover:underline">VIEW ALL →</Link>
           </div>
           {logs.length === 0 ? (
-            <div className="mono text-xs text-zinc-500 py-6 text-center border border-dashed border-zinc-800">
-              [ NO MESSAGES YET ]
-            </div>
+            <div className="mono text-xs text-zinc-500 py-6 text-center border border-dashed border-zinc-800">[ NO MESSAGES YET ]</div>
           ) : (
             <div className="space-y-1">
               {logs.map((m) => (
-                <div key={m.id} className="mono text-[11px] flex items-center gap-3 py-1 border-b border-zinc-900">
+                <div key={m.id || `${m.session_id}-${m.timestamp}-${m.remote_jid}-${m.text}`} className="mono text-[11px] flex items-center gap-3 py-1 border-b border-zinc-900">
                   <span className={m.direction === "incoming" ? "text-[#00E559]" : "text-[#3388FF]"}>
                     {m.direction === "incoming" ? "◀" : "▶"}
                   </span>
-                  <span className="text-zinc-500 shrink-0">{new Date(m.timestamp * 1000).toLocaleTimeString()}</span>
+                  <span className="text-zinc-500 shrink-0">{new Date((m.timestamp || 0) * 1000).toLocaleTimeString()}</span>
                   <span className="text-white truncate">{m.text || `[${m.media_type || "media"}]`}</span>
                 </div>
               ))}
