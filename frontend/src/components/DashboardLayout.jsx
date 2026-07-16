@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { NavLink, Outlet, useNavigate, Link } from "react-router-dom";
+import { NavLink, Outlet, useNavigate, Link, useLocation } from "react-router-dom";
 import { api, useAuth } from "@/lib/api";
 import {
   House, Broadcast, PaperPlaneRight, ChatCircleDots, PlugsConnected,
   ListDashes, Key, BookOpen, SignOut, Terminal, CreditCard, ShieldCheck,
+  List, X,
 } from "@phosphor-icons/react";
 
 const userLinks = [
@@ -21,8 +22,10 @@ const userLinks = [
 export default function DashboardLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const isAdmin = user?.role === "admin";
   const [summary, setSummary] = useState(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
     if (!isAdmin && user) {
@@ -30,15 +33,23 @@ export default function DashboardLayout() {
     }
   }, [isAdmin, user]);
 
+  // Close drawer whenever the route changes
+  useEffect(() => { setDrawerOpen(false); }, [location.pathname]);
+
   return (
-    <div className="min-h-screen flex" data-testid="dashboard-shell">
-      <aside className="w-64 border-r border-zinc-800 bg-black flex flex-col shrink-0">
-        <div className="p-6 border-b border-zinc-800 flex items-center gap-2">
-          <Terminal size={22} weight="bold" color="#25D366" />
-          <div>
-            <div className="mono text-sm font-bold text-white">WA_API</div>
-            <div className="mono text-[10px] text-zinc-500 uppercase tracking-widest">console v2.0</div>
+    <div className={"min-h-screen flex " + (drawerOpen ? "drawer-open" : "")} data-testid="dashboard-shell">
+      <aside className="w-64 border-r border-zinc-800 bg-black flex flex-col shrink-0" data-testid="dashboard-sidebar">
+        <div className="p-6 border-b border-zinc-800 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Terminal size={22} weight="bold" color="#25D366" />
+            <div>
+              <div className="mono text-sm font-bold text-white">WA_API</div>
+              <div className="mono text-[10px] text-zinc-500 uppercase tracking-widest">console v2.0</div>
+            </div>
           </div>
+          <button className="md:hidden text-zinc-400 hover:text-white" onClick={() => setDrawerOpen(false)} aria-label="Close menu" data-testid="dashboard-drawer-close">
+            <X size={18}/>
+          </button>
         </div>
         <nav className="flex-1 py-4 overflow-y-auto">
           <div className="mono text-[9px] uppercase tracking-widest text-zinc-600 px-4 mb-2">WhatsApp</div>
@@ -86,9 +97,24 @@ export default function DashboardLayout() {
           </button>
         </div>
       </aside>
-      <main className="flex-1 overflow-x-hidden">
+      <main className="flex-1 overflow-x-hidden min-w-0">
+        <div className="mobile-topbar dark" data-testid="dashboard-mobile-topbar">
+          <button className="mobile-topbar-btn" onClick={() => setDrawerOpen(true)} aria-label="Open menu" data-testid="dashboard-drawer-open">
+            <List size={16}/> MENU
+          </button>
+          <div className="flex-1"/>
+          <span className="mono text-[11px] text-zinc-400">{user?.email}</span>
+        </div>
         <Outlet />
       </main>
+      {/* Mobile drawer backdrop click closes */}
+      {drawerOpen && (
+        <button
+          className="fixed inset-0 z-50 md:hidden bg-transparent"
+          onClick={() => setDrawerOpen(false)}
+          aria-label="Close menu"
+        />
+      )}
     </div>
   );
 }

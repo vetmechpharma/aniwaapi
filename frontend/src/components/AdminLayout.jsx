@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { NavLink, Outlet, useNavigate, Link } from "react-router-dom";
+import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/api";
 import {
   ShieldCheck, UsersThree, Package, CurrencyDollar, Gear, Envelope,
   PaperPlaneRight, Lock, SignOut, House, ArrowSquareOut, EnvelopeSimple,
+  List, X,
 } from "@phosphor-icons/react";
 import AdminChangePassword from "@/components/AdminChangePassword";
 
@@ -21,19 +22,27 @@ const adminLinks = [
 export default function AdminLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [pwOpen, setPwOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  useEffect(() => { setDrawerOpen(false); }, [location.pathname]);
 
   return (
-    <div className="adm flex min-h-screen" data-testid="admin-shell">
+    <div className={"adm flex min-h-screen " + (drawerOpen ? "drawer-open" : "")} data-testid="admin-shell">
       <aside className="adm-sidebar w-64 shrink-0 flex flex-col">
-        <div className="p-6 border-b border-[color:var(--adm-border)] flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-[color:var(--adm-accent)] flex items-center justify-center">
-            <ShieldCheck size={20} weight="fill" color="#fff"/>
+        <div className="p-6 border-b border-[color:var(--adm-border)] flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-[color:var(--adm-accent)] flex items-center justify-center">
+              <ShieldCheck size={20} weight="fill" color="#fff"/>
+            </div>
+            <div>
+              <div className="font-medium text-[15px]" style={{fontFamily: 'Fraunces, serif'}}>Control Panel</div>
+              <div className="text-[11px] text-[color:var(--adm-text-3)] tracking-widest uppercase">Admin</div>
+            </div>
           </div>
-          <div>
-            <div className="font-medium text-[15px]" style={{fontFamily: 'Fraunces, serif'}}>Control Panel</div>
-            <div className="text-[11px] text-[color:var(--adm-text-3)] tracking-widest uppercase">Admin</div>
-          </div>
+          <button className="md:hidden adm-btn adm-btn-ghost" onClick={() => setDrawerOpen(false)} aria-label="Close menu" data-testid="admin-drawer-close">
+            <X size={16}/>
+          </button>
         </div>
 
         <nav className="flex-1 py-4 overflow-y-auto">
@@ -74,11 +83,25 @@ export default function AdminLayout() {
         </div>
       </aside>
 
-      <main className="flex-1 overflow-x-hidden">
+      <main className="flex-1 overflow-x-hidden min-w-0">
+        <div className="mobile-topbar" data-testid="admin-mobile-topbar">
+          <button className="mobile-topbar-btn" onClick={() => setDrawerOpen(true)} aria-label="Open menu" data-testid="admin-drawer-open">
+            <List size={16}/> MENU
+          </button>
+          <div className="flex-1"/>
+          <span className="text-[12px] text-[color:var(--adm-text-3)]">{user?.email}</span>
+        </div>
         <Outlet />
       </main>
 
       {pwOpen && <AdminChangePassword onClose={() => setPwOpen(false)} />}
+      {drawerOpen && (
+        <button
+          className="fixed inset-0 z-50 md:hidden bg-transparent"
+          onClick={() => setDrawerOpen(false)}
+          aria-label="Close menu"
+        />
+      )}
     </div>
   );
 }

@@ -200,7 +200,7 @@ export default function Billing() {
         {payments.length === 0 ? (
           <div className="p-8 text-center mono text-xs text-zinc-500 uppercase">[ no payments yet ]</div>
         ) : (
-          <table className="wa-table">
+          <table className="wa-table min-w-[820px]">
             <thead>
               <tr><th>DATE</th><th>PLAN</th><th>AMOUNT</th><th>REF</th><th>UTR</th><th>STATUS</th><th>NOTES</th></tr>
             </thead>

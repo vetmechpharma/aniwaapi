@@ -68,7 +68,7 @@ export default function Landing() {
               View pricing
             </Link>
           </div>
-          <div className="mt-10 flex justify-center items-center gap-6 text-xs text-zinc-500">
+          <div className="mt-10 flex flex-wrap justify-center items-center gap-x-6 gap-y-2 text-xs text-zinc-500">
             <span className="flex items-center gap-1"><Check size={12} className="accent"/> No credit card to start</span>
             <span className="flex items-center gap-1"><Check size={12} className="accent"/> UPI payments</span>
             <span className="flex items-center gap-1"><Check size={12} className="accent"/> Cancel anytime</span>

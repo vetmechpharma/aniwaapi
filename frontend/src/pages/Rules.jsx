@@ -241,7 +241,7 @@ export default function Rules() {
             <div className="mono text-xs text-zinc-500 uppercase tracking-widest">[ no rules{selectedSid ? ` for ${selectedSid}` : ""} ]</div>
           </div>
         ) : (
-          <table className="wa-table">
+          <table className="wa-table min-w-[820px]">
             <thead>
               <tr>
                 <th>SESSION</th><th>MATCH</th><th>TRIGGER</th><th>RESPONSE</th><th>ENABLED</th><th></th>

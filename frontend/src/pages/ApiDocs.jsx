@@ -237,10 +237,10 @@ function CopyBlock({ text, testid }) {
   const [copied, setCopied] = useState(false);
   return (
     <div className="relative group">
-      <pre className="terminal !text-[12px] pr-12" data-testid={testid}>{text}</pre>
+      <pre className="terminal !text-[12px] pr-14" data-testid={testid}>{text}</pre>
       <button
         onClick={async () => { await navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 1200); }}
-        className="wa-btn wa-btn-secondary absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+        className="wa-btn wa-btn-secondary absolute top-2 right-2 always-touch-visible md:opacity-0 md:group-hover:opacity-100 md:transition-opacity"
         title="Copy"
       >
         {copied ? <><Check size={12}/> COPIED</> : <><Copy size={12}/> COPY</>}
@@ -256,7 +256,7 @@ function EndpointCard({ e }) {
     <div className="wa-card p-6 mb-6" data-testid={`endpoint-${e.method}-${e.path}`}>
       <div className="flex items-center gap-3 mb-2 flex-wrap">
         <MethodBadge m={e.method}/>
-        <code className="mono text-white text-sm">{e.path}</code>
+        <code className="mono text-white text-sm break-all">{e.path}</code>
         <BodyTypeBadge t={e.bodyType}/>
         <span className="wa-badge">scope: <span className="text-[#25D366] ml-1">{e.scope}</span></span>
       </div>
@@ -266,18 +266,20 @@ function EndpointCard({ e }) {
       {e.query && (
         <div className="mb-4">
           <div className="mono text-[10px] uppercase text-zinc-500 mb-2">QUERY PARAMS</div>
-          <table className="wa-table text-xs">
-            <tbody>
-              {e.query.map((q) => (
-                <tr key={q.name}>
-                  <td className="mono text-[#25D366]">{q.name}</td>
-                  <td className="mono text-zinc-400">{q.type}</td>
-                  <td className="mono text-zinc-500">{q.required ? "required" : "optional"}</td>
-                  <td className="text-zinc-300">{q.desc}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="wa-table-wrap">
+            <table className="wa-table text-xs min-w-[540px]">
+              <tbody>
+                {e.query.map((q) => (
+                  <tr key={q.name}>
+                    <td className="mono text-[#25D366]">{q.name}</td>
+                    <td className="mono text-zinc-400">{q.type}</td>
+                    <td className="mono text-zinc-500">{q.required ? "required" : "optional"}</td>
+                    <td className="text-zinc-300">{q.desc}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
@@ -295,18 +297,20 @@ function EndpointCard({ e }) {
           <div className="mono text-[10px] uppercase text-zinc-500 mb-2">
             FORM FIELDS <span className="text-zinc-600">(Content-Type: multipart/form-data)</span>
           </div>
-          <table className="wa-table text-xs">
-            <tbody>
-              {e.formFields.map((f) => (
-                <tr key={f.name}>
-                  <td className="mono text-[#25D366]">{f.name}</td>
-                  <td className="mono text-zinc-400">{f.type}</td>
-                  <td className="mono text-zinc-500">{f.required ? "required" : "optional"}</td>
-                  <td className="text-zinc-300" dangerouslySetInnerHTML={{ __html: f.desc.replace(/`([^`]+)`/g, '<code class="mono text-[#25D366]">$1</code>') }}/>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="wa-table-wrap">
+            <table className="wa-table text-xs min-w-[600px]">
+              <tbody>
+                {e.formFields.map((f) => (
+                  <tr key={f.name}>
+                    <td className="mono text-[#25D366]">{f.name}</td>
+                    <td className="mono text-zinc-400">{f.type}</td>
+                    <td className="mono text-zinc-500">{f.required ? "required" : "optional"}</td>
+                    <td className="text-zinc-300" dangerouslySetInnerHTML={{ __html: f.desc.replace(/`([^`]+)`/g, '<code class="mono text-[#25D366]">$1</code>') }}/>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
@@ -406,17 +410,19 @@ export default function ApiDocs() {
 
       <h2 className="text-2xl font-medium text-white mt-12 mb-4">Error responses</h2>
       <div className="wa-card p-6">
-        <table className="wa-table">
-          <thead><tr><th>CODE</th><th>MEANING</th></tr></thead>
-          <tbody>
-            <tr><td className="mono text-yellow-500">401</td><td>Missing or invalid Bearer token</td></tr>
-            <tr><td className="mono text-yellow-500">402</td><td>Owner has no active subscription (or plan quota reached)</td></tr>
-            <tr><td className="mono text-yellow-500">403</td><td>API key does not have the required scope</td></tr>
-            <tr><td className="mono text-yellow-500">404</td><td>Session slug not found (for that owner)</td></tr>
-            <tr><td className="mono text-yellow-500">409</td><td>Session is not connected (scan the QR first)</td></tr>
-            <tr><td className="mono text-yellow-500">429</td><td>Rate limit exceeded (per-key) OR daily message quota hit</td></tr>
-          </tbody>
-        </table>
+        <div className="wa-table-wrap">
+          <table className="wa-table min-w-[420px]">
+            <thead><tr><th>CODE</th><th>MEANING</th></tr></thead>
+            <tbody>
+              <tr><td className="mono text-yellow-500">401</td><td>Missing or invalid Bearer token</td></tr>
+              <tr><td className="mono text-yellow-500">402</td><td>Owner has no active subscription (or plan quota reached)</td></tr>
+              <tr><td className="mono text-yellow-500">403</td><td>API key does not have the required scope</td></tr>
+              <tr><td className="mono text-yellow-500">404</td><td>Session slug not found (for that owner)</td></tr>
+              <tr><td className="mono text-yellow-500">409</td><td>Session is not connected (scan the QR first)</td></tr>
+              <tr><td className="mono text-yellow-500">429</td><td>Rate limit exceeded (per-key) OR daily message quota hit</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <h2 className="text-2xl font-medium text-white mt-12 mb-4">Notes</h2>

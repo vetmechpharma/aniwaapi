@@ -68,7 +68,7 @@ export default function Webhooks() {
         {items.length === 0 ? (
           <div className="p-12 text-center mono text-xs text-zinc-500 uppercase">[ no webhooks configured ]</div>
         ) : (
-          <table className="wa-table">
+          <table className="wa-table min-w-[820px]">
             <thead>
               <tr><th>SESSION</th><th>URL</th><th>LAST FIRED</th><th>LAST STATUS</th><th>ENABLED</th><th></th></tr>
             </thead>

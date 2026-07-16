@@ -143,8 +143,8 @@ export default function AdminPlans() {
         </div>
       )}
 
-      <div className="adm-card overflow-x-auto">
-        <table className="adm-table">
+      <div className="adm-card overflow-x-auto adm-table-wrap">
+        <table className="adm-table min-w-[820px]">
           <thead>
             <tr>
               <th>Order</th><th>Name</th><th>₹ INR</th><th>$ USD</th><th>Validity</th>

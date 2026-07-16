@@ -129,8 +129,8 @@ export default function AdminUsers() {
         </div>
       )}
 
-      <div className="adm-card overflow-x-auto">
-        <table className="adm-table">
+      <div className="adm-card overflow-x-auto -mx-2 md:mx-0 adm-table-wrap">
+        <table className="adm-table min-w-[900px]">
           <thead>
             <tr>
               <th>User</th><th>Contact</th><th>Plan</th><th>Expires</th><th>Status</th><th>Registered</th><th className="text-right">Actions</th>

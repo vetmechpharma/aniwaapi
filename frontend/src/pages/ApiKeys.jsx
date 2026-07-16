@@ -128,7 +128,7 @@ export default function ApiKeys() {
         {keys.length === 0 ? (
           <div className="p-12 text-center mono text-xs text-zinc-500 uppercase">[ no api keys ]</div>
         ) : (
-          <table className="wa-table">
+          <table className="wa-table min-w-[900px]">
             <thead>
               <tr><th>NAME</th><th>KEY</th><th>SCOPES</th><th>RATE/MIN</th><th>CREATED</th><th>LAST USED</th><th>USAGE</th><th>STATUS</th><th></th></tr>
             </thead>

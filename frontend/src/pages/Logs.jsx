@@ -79,7 +79,7 @@ export default function Logs() {
         {logs.length === 0 ? (
           <div className="p-12 text-center mono text-xs text-zinc-500 uppercase">[ no messages ]</div>
         ) : (
-          <table className="wa-table">
+          <table className="wa-table min-w-[900px]">
             <thead>
               <tr><th>DIR</th><th>TIME</th><th>SESSION</th><th>JID</th><th>NAME</th><th>MEDIA</th><th>STATUS</th><th>TEXT</th></tr>
             </thead>

@@ -52,10 +52,11 @@ export default function AdminPayments() {
 
       {err && <div className="adm-card p-3 mb-4 text-[13px] text-red-700 border-red-200 bg-red-50">{err}</div>}
 
-      <div className="adm-card overflow-x-auto">
-        <table className="adm-table">
+      <div className="adm-card overflow-x-auto adm-table-wrap">
+        <table className="adm-table min-w-[900px]">
           <thead>
-            <tr><th>Date</th><th>User</th><th>Plan</th><th>Amount</th><th>Ref</th><th>UTR</th><th>Proof</th><th>Status</th><th>Admin Notes</th><th className="text-right">Actions</th></tr>
+            <tr>
+              <th>Date</th><th>User</th><th>Plan</th><th>Amount</th><th>Ref</th><th>UTR</th><th>Proof</th><th>Status</th><th>Admin Notes</th><th className="text-right">Actions</th></tr>
           </thead>
           <tbody>
             {payments.map((p) => (

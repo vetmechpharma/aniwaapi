@@ -74,6 +74,7 @@ New endpoints this iteration:
 - **User: Password reset via Email OTP** (3-step public flow: email → 6-digit OTP → new password). Falls back gracefully if SMTP disabled.
 - **Welcome email** sent to newly created users (contains temporary credentials).
 - **New light-theme admin panel design** — emerald accents, Fraunces + Inter fonts, consistent with marketing site. Own `AdminLayout` shell.
+- **Mobile-responsive UI** — hamburger nav on public site, off-canvas drawer + hamburger MENU top-bar for user dashboard + admin panel, horizontally-scrolling wide tables, wrapped hero CTAs, fluid font sizes (`clamp()`), reduced sub-640px padding, and touch-visible copy buttons in API docs.
 
 ## Prioritized backlog
 ### P1
