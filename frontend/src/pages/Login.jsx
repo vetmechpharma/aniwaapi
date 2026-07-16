@@ -41,17 +41,17 @@ export default function Login() {
               <div>
                 <div className="flex justify-between items-baseline">
                   <label className="pub-label">Password</label>
-                  <Link to="/forgot-password" className="text-xs text-zinc-500 hover:text-white" data-testid="link-forgot">Forgot?</Link>
+                  <Link to="/forgot-password" className="text-xs text-zinc-500 hover:text-zinc-900" data-testid="link-forgot">Forgot?</Link>
                 </div>
                 <input required type="password" className="pub-input" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" data-testid="login-password-input"/>
               </div>
             </div>
-            {err && <div className="mt-4 p-3 rounded-lg border border-red-900 bg-red-950/30 text-sm text-red-300" data-testid="login-error">{err}</div>}
+            {err && <div className="mt-4 p-3 rounded-lg border border-red-200 bg-red-50 text-sm text-red-700" data-testid="login-error">{err}</div>}
             <button disabled={busy} className="pub-btn pub-btn-primary w-full mt-6" data-testid="login-submit-button">
               {busy ? "Signing in..." : "Sign in"}
             </button>
             <div className="text-center text-xs text-zinc-500 mt-6">
-              New here? <Link to="/register" className="text-white hover:underline" data-testid="link-register">Create an account →</Link>
+              New here? <Link to="/register" className="text-zinc-900 hover:underline" data-testid="link-register">Create an account →</Link>
             </div>
           </form>
         </div>

@@ -3,7 +3,7 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
   --wa-bg: #000000;
@@ -198,43 +198,50 @@ body {
 * { border-color: var(--wa-border); }
 
 /* ============================================================ */
-/* PUBLIC (marketing) styles — clean elegant look for landing,    */
-/* pricing, contact, login, register.                             */
+/* PUBLIC (marketing) styles — clean white, elegant fonts,        */
+/* WhatsApp-green accents. Applied only to public pages.          */
 /* ============================================================ */
 .pub {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  color: #F4F4F5;
-  background: #0A0A0B;
+  color: #0B141A;                     /* WhatsApp deep text */
+  background: #FFFFFF;
+  -webkit-font-smoothing: antialiased;
 }
 .pub-body {
   min-height: 100vh;
   background:
-    radial-gradient(circle at 15% -10%, rgba(37, 211, 102, 0.14) 0%, transparent 42%),
-    radial-gradient(circle at 90% 5%, rgba(18, 140, 126, 0.12) 0%, transparent 48%),
-    radial-gradient(circle at 50% 100%, rgba(7, 94, 84, 0.10) 0%, transparent 55%),
-    #08110D;
+    radial-gradient(circle at 12% -12%, rgba(37, 211, 102, 0.10) 0%, transparent 40%),
+    radial-gradient(circle at 88% 0%, rgba(18, 140, 126, 0.06) 0%, transparent 45%),
+    radial-gradient(circle at 50% 105%, rgba(37, 211, 102, 0.05) 0%, transparent 50%),
+    #FFFFFF;
 }
 .pub h1, .pub h2, .pub h3 {
-  font-family: 'Instrument Serif', 'Times New Roman', serif;
+  font-family: 'Fraunces', 'Instrument Serif', 'Times New Roman', serif;
   font-weight: 400;
-  letter-spacing: -0.02em;
-  color: #FAFAFA;
+  font-variation-settings: "opsz" 96, "SOFT" 40, "WONK" 0;
+  letter-spacing: -0.025em;
+  color: #0B141A;
 }
-.pub h1 { font-size: clamp(2.8rem, 6vw, 4.75rem); line-height: 1.05; }
-.pub h2 { font-size: clamp(2rem, 4vw, 3.25rem); line-height: 1.1; }
+.pub h1 { font-size: clamp(2.75rem, 6vw, 5rem); line-height: 1.02; }
+.pub h2 { font-size: clamp(2rem, 4vw, 3.4rem); line-height: 1.08; }
 .pub h3 { font-size: clamp(1.4rem, 2.2vw, 1.9rem); line-height: 1.2; }
-.pub p { line-height: 1.65; color: #A1A1AA; }
-.pub .lead { font-size: 1.125rem; color: #D4D4D8; }
+.pub p { line-height: 1.7; color: #54656F; }                /* WA muted text */
+.pub .lead { font-size: 1.125rem; color: #3B4A54; }
 .pub .eyebrow {
   font-family: 'Inter', sans-serif;
   font-size: 11px;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: #71717A;
+  color: #667781;
   font-weight: 500;
 }
-.pub .accent { color: #25D366; }
-.pub .accent-serif { font-style: italic; color: #FAFAFA; }
+.pub .accent { color: #128C7E; }
+.pub .accent-serif {
+  font-family: 'Fraunces', 'Instrument Serif', serif;
+  font-style: italic;
+  font-variation-settings: "opsz" 96, "SOFT" 100;
+  color: #128C7E;
+}
 
 .pub-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
@@ -245,90 +252,112 @@ body {
   font-size: 14px;
   border: 1px solid transparent;
   cursor: pointer;
-  transition: transform 120ms ease, background 200ms ease, color 200ms ease, border-color 200ms ease;
+  transition: transform 120ms ease, background 200ms ease, color 200ms ease, border-color 200ms ease, box-shadow 200ms ease;
   text-decoration: none;
 }
 .pub-btn:active { transform: scale(0.97); }
-.pub-btn-primary { background: #25D366; color: #052E1B; font-weight: 600; }
-.pub-btn-primary:hover { background: #128C7E; color: #FAFAFA; }
-.pub-btn-secondary { background: transparent; color: #FAFAFA; border-color: rgba(37,211,102,0.25); }
-.pub-btn-secondary:hover { border-color: #25D366; color: #25D366; }
-.pub-btn-ghost { background: transparent; color: #A1A1AA; }
-.pub-btn-ghost:hover { color: #FAFAFA; }
+.pub-btn-primary {
+  background: #25D366; color: #052E1B; font-weight: 600;
+  box-shadow: 0 6px 20px -6px rgba(37, 211, 102, 0.45);
+}
+.pub-btn-primary:hover { background: #128C7E; color: #FFFFFF; box-shadow: 0 10px 24px -6px rgba(18, 140, 126, 0.5); }
+.pub-btn-secondary { background: #FFFFFF; color: #0B141A; border-color: #E9EDEF; }
+.pub-btn-secondary:hover { border-color: #25D366; color: #128C7E; }
+.pub-btn-ghost { background: transparent; color: #54656F; }
+.pub-btn-ghost:hover { color: #0B141A; }
 
 .pub-input, .pub-textarea, .pub-select {
   width: 100%;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.08);
-  color: #FAFAFA;
+  background: #FFFFFF;
+  border: 1px solid #E9EDEF;
+  color: #0B141A;
   padding: 12px 14px;
   border-radius: 10px;
   font-family: 'Inter', sans-serif;
   font-size: 14px;
   outline: none;
-  transition: border-color 150ms ease, background 150ms ease;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
 }
+.pub-input::placeholder, .pub-textarea::placeholder { color: #A6ADB0; }
 .pub-input:focus, .pub-textarea:focus, .pub-select:focus {
   border-color: #25D366;
-  background: rgba(37, 211, 102, 0.04);
+  box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.15);
 }
 .pub-textarea { resize: vertical; min-height: 120px; }
 .pub-label {
   font-family: 'Inter', sans-serif;
   font-size: 12px; font-weight: 500;
-  color: #A1A1AA; display: block; margin-bottom: 6px;
+  color: #54656F; display: block; margin-bottom: 6px;
 }
 
 .pub-card {
-  background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: #FFFFFF;
+  border: 1px solid #E9EDEF;
   border-radius: 16px;
   padding: 24px;
-  transition: border-color 200ms ease, transform 200ms ease, background 200ms ease;
+  transition: border-color 200ms ease, transform 200ms ease, box-shadow 200ms ease;
+  box-shadow: 0 1px 2px rgba(11, 20, 26, 0.04);
 }
-.pub-card:hover { border-color: rgba(37, 211, 102, 0.35); }
-.pub-card-highlight { border-color: rgba(37, 211, 102, 0.4); background: rgba(37, 211, 102, 0.03); }
+.pub-card:hover {
+  border-color: #25D366;
+  box-shadow: 0 12px 28px -12px rgba(37, 211, 102, 0.25);
+  transform: translateY(-2px);
+}
+.pub-card-highlight {
+  border-color: #25D366;
+  background: linear-gradient(180deg, #F0FDF4 0%, #FFFFFF 100%);
+  box-shadow: 0 10px 30px -10px rgba(37, 211, 102, 0.3);
+}
 
 .pub-nav {
   position: sticky; top: 0; z-index: 40;
-  backdrop-filter: blur(14px);
-  background: rgba(10,10,11,0.7);
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  backdrop-filter: blur(16px);
+  background: rgba(255, 255, 255, 0.85);
+  border-bottom: 1px solid #E9EDEF;
 }
 .pub-nav-link {
   font-family: 'Inter', sans-serif;
   font-size: 14px;
-  color: #A1A1AA;
+  color: #54656F;
   transition: color 150ms;
   text-decoration: none;
+  font-weight: 500;
 }
-.pub-nav-link:hover, .pub-nav-link.active { color: #FAFAFA; }
+.pub-nav-link:hover, .pub-nav-link.active { color: #128C7E; }
 
 .pub-footer {
-  border-top: 1px solid rgba(255,255,255,0.06);
-  color: #71717A;
+  border-top: 1px solid #E9EDEF;
+  background: #F7FAF9;
+  color: #54656F;
   font-size: 13px;
 }
+.pub-footer a { color: #54656F; }
+.pub-footer a:hover { color: #128C7E; }
 
 .pub-badge {
   display: inline-flex; align-items: center; gap: 6px;
-  padding: 4px 10px;
+  padding: 5px 12px;
   border-radius: 999px;
-  background: rgba(37, 211, 102, 0.10);
-  border: 1px solid rgba(37, 211, 102, 0.30);
-  color: #25D366;
+  background: #F0FDF4;
+  border: 1px solid #BBF7D0;
+  color: #128C7E;
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 /* WhatsApp-inspired chat-bubble decoration for hero */
 .pub-bubble {
   position: absolute;
-  border-radius: 18px;
-  background: linear-gradient(135deg, rgba(37, 211, 102, 0.08), rgba(18, 140, 126, 0.04));
-  border: 1px solid rgba(37, 211, 102, 0.15);
-  backdrop-filter: blur(6px);
+  border-radius: 20px;
+  background: #DCF8C6;                 /* famous WhatsApp outgoing-bubble green */
+  box-shadow: 0 8px 24px -12px rgba(37, 211, 102, 0.35);
+}
+.pub-bubble.white {
+  background: #FFFFFF;
+  border: 1px solid #E9EDEF;
+  box-shadow: 0 8px 24px -12px rgba(11, 20, 26, 0.12);
 }
 .pub-bubble::after {
   content: "";
@@ -336,12 +365,25 @@ body {
   width: 14px; height: 14px;
   background: inherit;
   border: inherit;
-  border-top: 0; border-left: 0;
+  bottom: -7px; left: 22px;
   transform: rotate(45deg);
-  bottom: -8px; left: 24px;
   border-radius: 0 0 4px 0;
+  clip-path: polygon(0 0, 100% 100%, 0 100%);
 }
-.pub-bubble.left::after { left: auto; right: 24px; }
+.pub-bubble.left::after { left: auto; right: 22px; clip-path: polygon(100% 0, 100% 100%, 0 100%); }
+
+.pub-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #E9EDEF, transparent);
+}
+
+.pub-grid-bg {
+  background-image:
+    linear-gradient(rgba(11, 20, 26, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(11, 20, 26, 0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse at center top, black 30%, transparent 75%);
+}
 
 .pub-divider {
   height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);

@@ -44,20 +44,20 @@ export default function Contact() {
             {info.contact_email && (
               <div className="pub-card">
                 <EnvelopeSimple size={20} className="accent mb-3"/>
-                <div className="text-white font-medium mb-1">Email</div>
-                <a href={`mailto:${info.contact_email}`} className="text-sm text-zinc-300 hover:text-white break-all">{info.contact_email}</a>
+                <div className="text-zinc-900 font-medium mb-1">Email</div>
+                <a href={`mailto:${info.contact_email}`} className="text-sm text-zinc-700 hover:text-zinc-900 break-all">{info.contact_email}</a>
               </div>
             )}
             {info.contact_phone && (
               <div className="pub-card">
                 <Phone size={20} className="accent mb-3"/>
-                <div className="text-white font-medium mb-1">Phone / WhatsApp</div>
-                <a href={`tel:${info.contact_phone}`} className="text-sm text-zinc-300 hover:text-white">{info.contact_phone}</a>
+                <div className="text-zinc-900 font-medium mb-1">Phone / WhatsApp</div>
+                <a href={`tel:${info.contact_phone}`} className="text-sm text-zinc-700 hover:text-zinc-900">{info.contact_phone}</a>
               </div>
             )}
             <div className="pub-card">
               <MapPin size={20} className="accent mb-3"/>
-              <div className="text-white font-medium mb-1">Support hours</div>
+              <div className="text-zinc-900 font-medium mb-1">Support hours</div>
               <p className="text-sm">Mon–Fri, 9:00 – 18:00 IST · Response within 24 hours.</p>
             </div>
           </div>
@@ -84,7 +84,7 @@ export default function Contact() {
                   <div className="md:col-span-2"><label className="pub-label">Message *</label>
                     <textarea required className="pub-textarea" value={form.message} onChange={set("message")} data-testid="contact-message"/></div>
                 </div>
-                {err && <div className="mt-4 p-3 rounded-lg border border-red-900 bg-red-950/30 text-sm text-red-300">{err}</div>}
+                {err && <div className="mt-4 p-3 rounded-lg border border-red-200 bg-red-50 text-sm text-red-700">{err}</div>}
                 <button disabled={busy} className="pub-btn pub-btn-primary mt-6" data-testid="contact-submit">
                   <PaperPlaneRight size={14}/> {busy ? "Sending..." : "Send message"}
                 </button>

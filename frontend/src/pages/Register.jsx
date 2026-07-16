@@ -67,12 +67,12 @@ export default function Register() {
               <div className="md:col-span-2"><label className="pub-label">Location (city, country)</label>
                 <input className="pub-input" value={form.location} onChange={set("location")} placeholder="Chennai, India" data-testid="reg-location"/></div>
             </div>
-            {err && <div className="mt-4 p-3 rounded-lg border border-red-900 bg-red-950/30 text-sm text-red-300" data-testid="reg-error">{err}</div>}
+            {err && <div className="mt-4 p-3 rounded-lg border border-red-200 bg-red-50 text-sm text-red-700" data-testid="reg-error">{err}</div>}
             <button disabled={busy} className="pub-btn pub-btn-primary w-full mt-6" data-testid="reg-submit">
               {busy ? "Submitting..." : "Create account"}
             </button>
             <div className="text-center text-xs text-zinc-500 mt-6">
-              Already have an account? <Link to="/login" className="text-white hover:underline">Sign in →</Link>
+              Already have an account? <Link to="/login" className="text-zinc-900 hover:underline">Sign in →</Link>
             </div>
           </form>
         </div>

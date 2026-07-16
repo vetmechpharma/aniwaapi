@@ -56,7 +56,7 @@ export default function Features() {
       </section>
 
       {groups.map((g, gi) => (
-        <section key={g.title} className="py-16 px-6 border-t border-white/5">
+        <section key={g.title} className="py-16 px-6 border-t border-zinc-200">
           <div className="max-w-6xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
               <div className="md:col-span-1">
@@ -68,7 +68,7 @@ export default function Features() {
                 {g.items.map(it => (
                   <div key={it.title} className="pub-card">
                     <it.icon size={20} weight="duotone" className="mb-3 accent"/>
-                    <div className="text-white font-medium mb-1">{it.title}</div>
+                    <div className="text-zinc-900 font-medium mb-1">{it.title}</div>
                     <p className="text-sm">{it.body}</p>
                   </div>
                 ))}
@@ -78,7 +78,7 @@ export default function Features() {
         </section>
       ))}
 
-      <section className="py-20 px-6 text-center border-t border-white/5">
+      <section className="py-20 px-6 text-center border-t border-zinc-200">
         <div className="max-w-2xl mx-auto">
           <h2 className="mb-6">Ready to try it?</h2>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">

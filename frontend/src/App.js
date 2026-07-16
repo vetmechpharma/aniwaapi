@@ -65,10 +65,9 @@ function LoginGate() {
 }
 
 function HomeGate() {
-  // Public landing when not logged in; auto-redirect to app/admin when logged in
+  // Public landing is always the front page — logged-in users use the nav bar's Dashboard button
   const { user } = useAuth();
   if (user === null) return <Loader />;
-  if (user && user !== false) return <Navigate to={user.role === "admin" ? "/admin" : "/app"} replace />;
   return <Landing />;
 }
 

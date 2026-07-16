@@ -50,14 +50,14 @@ export default function Pricing() {
                   {i === 2 && <div className="pub-badge mb-3">★ Popular</div>}
                   <div className="eyebrow mb-3">{p.name}</div>
                   <div className="mb-1">
-                    <span className="text-4xl text-white" style={{ fontFamily: "'Instrument Serif', serif" }}>₹{p.price_inr}</span>
+                    <span className="text-4xl text-zinc-900" style={{ fontFamily: "'Instrument Serif', serif" }}>₹{p.price_inr}</span>
                     <span className="text-xs text-zinc-500 ml-2">/ ${p.price_usd}</span>
                   </div>
                   <div className="text-xs text-zinc-500 mb-4">{p.validity_days} day validity</div>
                   <p className="text-sm mb-4 min-h-[3rem]">{p.description}</p>
                   <ul className="space-y-2 flex-1 mb-6">
                     {(p.features || []).map((f) => (
-                      <li key={f} className="text-sm text-zinc-300 flex items-start gap-2">
+                      <li key={f} className="text-sm text-zinc-700 flex items-start gap-2">
                         <Check size={14} className="accent mt-0.5 shrink-0"/>{f}
                       </li>
                     ))}

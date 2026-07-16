@@ -44,8 +44,8 @@ export default function Landing() {
         <div className="pub-grid-bg absolute inset-0 pointer-events-none"/>
         {/* Chat-bubble decorations (WhatsApp-inspired) */}
         <div className="pub-bubble hidden md:block" style={{ top: '18%', left: '4%', width: 200, height: 60 }}/>
-        <div className="pub-bubble left hidden md:block" style={{ top: '32%', right: '5%', width: 160, height: 52 }}/>
-        <div className="pub-bubble hidden lg:block" style={{ top: '58%', left: '8%', width: 140, height: 44 }}/>
+        <div className="pub-bubble white left hidden md:block" style={{ top: '32%', right: '5%', width: 160, height: 52 }}/>
+        <div className="pub-bubble white hidden lg:block" style={{ top: '58%', left: '8%', width: 140, height: 44 }}/>
         <div className="pub-bubble left hidden lg:block" style={{ top: '70%', right: '7%', width: 180, height: 50 }}/>
 
         <div className="max-w-4xl mx-auto px-6 text-center relative">
@@ -77,7 +77,7 @@ export default function Landing() {
       </section>
 
       {/* Feature grid preview */}
-      <section id="features" className="py-20 border-t border-white/5">
+      <section id="features" className="py-20 border-t border-zinc-200">
         <div className="max-w-6xl mx-auto px-6">
           <div className="max-w-2xl mb-12">
             <div className="eyebrow mb-3">Features</div>
@@ -88,7 +88,7 @@ export default function Landing() {
             {featureList.map((f) => (
               <div key={f.title} className="pub-card" data-testid={`feature-${f.title}`}>
                 <f.icon size={22} weight="duotone" className="mb-4 accent"/>
-                <div className="text-white font-medium mb-2" style={{ fontFamily: "'Inter', sans-serif" }}>{f.title}</div>
+                <div className="text-zinc-900 font-medium mb-2" style={{ fontFamily: "'Inter', sans-serif" }}>{f.title}</div>
                 <p className="text-sm">{f.body}</p>
               </div>
             ))}
@@ -97,15 +97,15 @@ export default function Landing() {
       </section>
 
       {/* How it works */}
-      <section className="py-20 border-t border-white/5">
+      <section className="py-20 border-t border-zinc-200">
         <div className="max-w-5xl mx-auto px-6">
           <div className="eyebrow mb-3">How it works</div>
           <h2 className="mb-12">Four steps. That&rsquo;s it.</h2>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {steps.map(s => (
               <div key={s.n} className="pub-card" data-testid={`step-${s.n}`}>
-                <div style={{ fontFamily: "'Instrument Serif', serif" }} className="text-4xl italic mb-3 text-zinc-600">{s.n}</div>
-                <div className="text-white font-medium mb-2">{s.title}</div>
+                <div style={{ fontFamily: "'Instrument Serif', serif" }} className="text-4xl italic mb-3 text-zinc-400">{s.n}</div>
+                <div className="text-zinc-900 font-medium mb-2">{s.title}</div>
                 <p className="text-sm">{s.body}</p>
               </div>
             ))}
@@ -114,7 +114,7 @@ export default function Landing() {
       </section>
 
       {/* Pricing preview */}
-      <section className="py-20 border-t border-white/5">
+      <section className="py-20 border-t border-zinc-200">
         <div className="max-w-6xl mx-auto px-6">
           <div className="flex items-end justify-between flex-wrap gap-4 mb-10">
             <div>
@@ -129,13 +129,13 @@ export default function Landing() {
                 {i === 1 && <div className="pub-badge mb-3">★ Popular</div>}
                 <div className="eyebrow mb-3">{p.name}</div>
                 <div className="mb-1">
-                  <span className="text-4xl text-white" style={{ fontFamily: "'Instrument Serif', serif" }}>₹{p.price_inr}</span>
+                  <span className="text-4xl text-zinc-900" style={{ fontFamily: "'Instrument Serif', serif" }}>₹{p.price_inr}</span>
                   <span className="text-xs text-zinc-500 ml-2">/ ${p.price_usd}</span>
                 </div>
                 <div className="text-xs text-zinc-500 mb-4">{p.validity_days} day validity</div>
                 <ul className="space-y-2 mb-6 min-h-[7rem]">
                   {(p.features || []).slice(0, 4).map((f) => (
-                    <li key={f} className="text-sm text-zinc-300 flex items-start gap-2"><Check size={14} className="accent mt-0.5 shrink-0"/>{f}</li>
+                    <li key={f} className="text-sm text-zinc-700 flex items-start gap-2"><Check size={14} className="accent mt-0.5 shrink-0"/>{f}</li>
                   ))}
                 </ul>
                 <Link to="/pricing" className={"pub-btn w-full " + (i === 1 ? "pub-btn-primary" : "pub-btn-secondary")}>
@@ -148,7 +148,7 @@ export default function Landing() {
       </section>
 
       {/* Trust / CTA band */}
-      <section className="py-20 border-t border-white/5">
+      <section className="py-20 border-t border-zinc-200">
         <div className="max-w-3xl mx-auto px-6 text-center">
           <UsersThree size={30} weight="duotone" className="mx-auto accent mb-4"/>
           <h2 className="mb-6">Ready to <span className="accent-serif italic">automate?</span></h2>

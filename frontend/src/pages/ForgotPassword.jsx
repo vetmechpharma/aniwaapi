@@ -43,12 +43,12 @@ export default function ForgotPassword() {
             <form onSubmit={submit} className="pub-card" data-testid="forgot-form">
               <label className="pub-label">Email</label>
               <input required type="email" className="pub-input" value={email} onChange={(e) => setEmail(e.target.value)} data-testid="forgot-email"/>
-              {err && <div className="mt-4 p-3 rounded-lg border border-red-900 bg-red-950/30 text-sm text-red-300">{err}</div>}
+              {err && <div className="mt-4 p-3 rounded-lg border border-red-200 bg-red-50 text-sm text-red-700">{err}</div>}
               <button disabled={busy} className="pub-btn pub-btn-primary w-full mt-6" data-testid="forgot-submit">
                 {busy ? "Sending..." : "Request reset"}
               </button>
               <div className="text-center text-xs text-zinc-500 mt-6">
-                <Link to="/login" className="text-white hover:underline">← Back to login</Link>
+                <Link to="/login" className="text-zinc-900 hover:underline">← Back to login</Link>
               </div>
             </form>
           )}

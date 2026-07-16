@@ -17,7 +17,7 @@ export default function PublicNav({ brand = "WA_API" }) {
     <nav className="pub-nav" data-testid="public-nav">
       <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2" data-testid="brand-link">
-          <span className="text-2xl" style={{ fontFamily: "'Instrument Serif', serif", color: "#FAFAFA", fontStyle: "italic" }}>{brand}</span>
+          <span className="text-2xl" style={{ fontFamily: "'Instrument Serif', serif", color: "#0B141A", fontStyle: "italic" }}>{brand}</span>
         </Link>
         <div className="hidden md:flex items-center gap-8">
           {links.map(l => (
@@ -38,12 +38,12 @@ export default function PublicNav({ brand = "WA_API" }) {
             </>
           )}
         </div>
-        <button className="md:hidden text-white" onClick={() => setOpen(!open)} data-testid="mobile-menu">
+        <button className="md:hidden text-zinc-900" onClick={() => setOpen(!open)} data-testid="mobile-menu">
           {open ? <X size={22}/> : <List size={22}/>}
         </button>
       </div>
       {open && (
-        <div className="md:hidden border-t border-white/5 px-6 py-4 space-y-3">
+        <div className="md:hidden border-t border-zinc-200 px-6 py-4 space-y-3">
           {links.map(l => (
             <Link key={l.to} to={l.to} onClick={() => setOpen(false)} className="block pub-nav-link">{l.label}</Link>
           ))}
