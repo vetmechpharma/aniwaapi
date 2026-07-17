@@ -7,7 +7,7 @@ from core import (
     now_iso, WA_SIDECAR_URL,
 )
 
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI, WebSocket, HTTPException
 from starlette.middleware.cors import CORSMiddleware
 import httpx
 from core import sidecar_headers
@@ -178,6 +178,35 @@ async def health():
     except Exception:
         sidecar_ok = False
     return {"ok": True, "sidecar": sidecar_ok, "version": app.version}
+
+
+# ---------- Downloadable install guide (public) ----------
+from fastapi.responses import FileResponse
+from pathlib import Path as _P
+
+_DOWNLOADS_DIR = _P(__file__).parent / "static" / "downloads"
+_INSTALL_PDF = _DOWNLOADS_DIR / "WA_API_VPS_Install_Guide.pdf"
+
+@misc.get("/downloads/vps-install-guide.pdf")
+async def download_install_pdf():
+    """Public download link for the VPS install guide (PDF, ~70 KB)."""
+    if not _INSTALL_PDF.exists():
+        # Build on the fly if missing (e.g. after a fresh checkout on the VPS)
+        import subprocess, sys
+        script = _P(__file__).parent.parent / "scripts" / "build_install_pdf.py"
+        if script.exists():
+            try:
+                subprocess.check_call([sys.executable, str(script)])
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=f"PDF build failed: {e}")
+    if not _INSTALL_PDF.exists():
+        raise HTTPException(status_code=404, detail="Install guide is not available.")
+    return FileResponse(
+        path=str(_INSTALL_PDF),
+        media_type="application/pdf",
+        filename="WA_API_VPS_Install_Guide.pdf",
+        headers={"Cache-Control": "public, max-age=300"},
+    )
 
 # ---------- Routers ----------
 app.include_router(auth_router)

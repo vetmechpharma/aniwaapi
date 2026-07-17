@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import {
   UsersThree, Clock, CurrencyDollar, Package, CheckCircle, ArrowRight,
-  Envelope, PaperPlaneRight, EnvelopeSimple, Gear,
+  Envelope, PaperPlaneRight, EnvelopeSimple, Gear, DownloadSimple, FileText,
 } from "@phosphor-icons/react";
 
 function Stat({ label, value, icon: Icon, to, warn, testid }) {
@@ -69,6 +69,35 @@ export default function AdminOverview() {
         <QuickAction to="/admin/smtp" icon={EnvelopeSimple} title="SMTP Setup" desc="Configure outgoing email for OTP + welcome" testid="qa-smtp"/>
         <QuickAction to="/admin/messages" icon={Envelope} title="Inbox" desc={`${data?.unread_messages || 0} unread contact form messages`} testid="qa-inbox"/>
         <QuickAction to="/admin/settings" icon={Gear} title="Billing Settings" desc="UPI VPA, brand name, contact info" testid="qa-settings"/>
+      </div>
+
+      {/* VPS Install guide card */}
+      <div className="mb-4">
+        <div className="adm-crumb">Deployment</div>
+      </div>
+      <div className="adm-card p-6 flex items-start gap-4 flex-wrap" data-testid="install-guide-card">
+        <div className="w-12 h-12 rounded-2xl bg-[color:var(--adm-accent-soft)] flex items-center justify-center shrink-0">
+          <FileText size={22} weight="bold" color="#128C7E"/>
+        </div>
+        <div className="flex-1 min-w-[260px]">
+          <div className="font-medium text-[color:var(--adm-text)] text-[15px]">VPS Installation Guide (PDF)</div>
+          <div className="text-[13px] text-[color:var(--adm-text-2)] mt-1 leading-relaxed">
+            Complete step-by-step guide to self-host this project on a Linux VPS — Ubuntu, Node, Python, MongoDB, Nginx + HTTPS.
+            Configured for co-hosting alongside existing Emergent projects on ports <span className="adm-badge adm-badge-gray">8001</span>{" "}
+            <span className="adm-badge adm-badge-gray">8002</span> <span className="adm-badge adm-badge-gray">8003</span> — this stack uses{" "}
+            <span className="adm-badge adm-badge-green">8004</span> (backend) and{" "}
+            <span className="adm-badge adm-badge-green">3005</span> (sidecar).
+          </div>
+        </div>
+        <a
+          href="/api/downloads/vps-install-guide.pdf"
+          target="_blank"
+          rel="noreferrer"
+          className="adm-btn adm-btn-primary shrink-0"
+          data-testid="download-install-pdf"
+        >
+          <DownloadSimple size={14} weight="bold"/> Download PDF
+        </a>
       </div>
     </div>
   );
