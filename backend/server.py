@@ -216,11 +216,14 @@ async def download_install_html():
     folder=/opt/wa_api). Open in any browser or print to PDF."""
     if not _INSTALL_HTML.exists():
         raise HTTPException(status_code=404, detail="Install guide (HTML) is not available.")
+    # Open inline in the browser (not force-download) — the admin button says "Open HTML"
     return FileResponse(
         path=str(_INSTALL_HTML),
         media_type="text/html; charset=utf-8",
-        filename="WA_API_VPS_Install_Guide.html",
-        headers={"Cache-Control": "public, max-age=60"},
+        headers={
+            "Cache-Control": "public, max-age=60",
+            "Content-Disposition": 'inline; filename="WA_API_VPS_Install_Guide.html"',
+        },
     )
 
 # ---------- Routers ----------

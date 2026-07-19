@@ -426,7 +426,7 @@ sudo tail -n 100 /var/log/wa_api/sidecar.err.log</code></pre></div>
 <h2 id="s7">7. Nginx + HTTPS</h2>
 
 <div class="callout danger">
-<div class="cttl">7.0 Remove ANY previous config that owns wa.animitra.in</div>
+<div class="cttl">7.0 Remove ANY previous nginx config that owns wa.animitra.in</div>
 Nginx returns the FIRST matching <code>server_name</code>. If a leftover config (e.g. the old <em>VMP CRM installer</em>) still claims the domain, WA_API will be invisible.
 </div>
 

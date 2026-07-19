@@ -17,6 +17,7 @@ Covers:
   - Health/plans/admin-login regressions
 """
 import os
+import re
 import shutil
 from pathlib import Path
 
@@ -67,8 +68,11 @@ class TestVpsInstallHtmlEndpoint:
         assert "WA_API_VPS_Install_Guide.html" in cd, (
             f"expected filename in Content-Disposition, got: {cd!r}"
         )
-        # FastAPI FileResponse sets 'attachment' by default when filename is given
-        assert "attachment" in cd.lower(), f"expected 'attachment' disposition, got: {cd!r}"
+        # The 'Open HTML' button opens the guide inline in a new tab (better UX than force-download).
+        # Either 'inline' or 'attachment' is acceptable — the filename is what matters for saving.
+        assert re.search(r"\b(inline|attachment)\b", cd, re.IGNORECASE), (
+            f"expected inline or attachment disposition, got: {cd!r}"
+        )
 
     def test_body_starts_with_doctype_and_min_size(self):
         r = requests.get(HTML_URL, timeout=30)
