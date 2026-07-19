@@ -1,0 +1,44 @@
+{
+  "summary": "Backend-only regression + acceptance testing of the new HTML install guide feature (GET /api/downloads/vps-install-guide.html) plus PDF/health/auth regressions. 10 tests written; 9 pass (1 placeholder skipped for xdist grouping). ONE ACCEPTANCE FAILURE: the required section heading 'Remove ANY previous nginx config' is NOT present in the baked HTML — actual heading text is '7.0 Remove ANY previous config that owns wa.animitra.in' (the word 'nginx' is missing from that h3 heading text).",
+  "backend_issues": {
+    "critical": [
+      {
+        "endpoint": "static: /app/backend/static/downloads/WA_API_VPS_Install_Guide.html (served via GET /api/downloads/vps-install-guide.html)",
+        "issue": "Required section heading 'Remove ANY previous nginx config' is missing. HTML contains the heading '7.0 Remove ANY previous config that owns wa.animitra.in' (no 'nginx' token) — this is heading text mismatch vs the acceptance criteria in the problem statement. Rename the h3 (and any TOC/anchor reference) to include the word 'nginx', e.g. '7.0 Remove ANY previous nginx config that owns wa.animitra.in'. All other 4 baked literals (wa.animitra.in, /opt/wa_api, 127.0.0.1:8004, :3005, admin@animitra.in) and the other two required headings ('Verify nginx is really serving WA_API', 'Domain shows a different project') are present and pass.",
+        "priority": "HIGH"
+      }
+    ],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration6_vps_install_html.py",
+    "/app/test_reports/pytest/iteration6_results.xml"
+  ],
+  "action_items": [
+    "In /app/backend/static/downloads/WA_API_VPS_Install_Guide.html, update the section 7.0 heading so it contains the exact substring 'Remove ANY previous nginx config'. Suggested wording: '<h3>7.0 Remove ANY previous nginx config that owns wa.animitra.in</h3>' (there is currently a <div class=\"cttl\"> with the old text — convert it to <h3> or add an <h3> above it). Update the section source (build script / template) so this survives future rebuilds. No other file changes needed."
+  ],
+  "critical_code_review_comments": [
+    "server.py: GET /api/downloads/vps-install-guide.html is correctly async, uses FastAPI FileResponse with proper media_type and 404-on-missing. Clean.",
+    "The endpoint does NOT attempt to auto-rebuild the HTML if missing (unlike the PDF endpoint which shells out to build_install_pdf.py). That is fine and intentional — the negative test confirms 404 (not 500) when the file is absent.",
+    "Content-Disposition is 'attachment' by default because filename= is passed to FileResponse. If E1 wants the HTML to open inline in the browser rather than force-download (matches the 'Open HTML' button label), consider setting Content-Disposition: inline explicitly. Currently the button will trigger a download rather than opening in a new tab."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration6_vps_install_html.py (new)"
+  ],
+  "success_rate": {
+    "backend": "90% (9/10 acceptance + regression tests pass; 1 skipped placeholder; 1 real content failure)",
+    "frontend": "N/A — skipped per testing_type"
+  },
+  "test_credentials": "admin@example.com / admin123 (from /app/memory/test_credentials.md) — used only for regression login check; passed.",
+  "seed_data_creation": "None. Negative test temporarily renamed the HTML file and restored it via try/finally. Final md5sum c2c80f902853f3478cfeb63b28cabd99 (25170 bytes) confirms file is untouched.",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Re-run: pytest /app/backend/tests/test_iteration6_vps_install_html.py -v. Expect 9 passing + 1 skipped once the missing '7.0 Remove ANY previous nginx config' heading is added to the HTML. All other tests (baked literals, doctype, 15KB+ size, content-disposition, 404-on-missing-file, PDF regression, health, plans, admin login) already pass. The test file merges the 'file missing' negative test into TestVpsInstallHtmlEndpoint (as test_zzz_missing_file_returns_404) so pytest-xdist loadscope keeps it on the same worker as the content tests — do NOT split them into separate classes or a race with the positive tests will return 404.",
+  "rca of the issue": "RCA: The problem statement mandates the literal substring 'Remove ANY previous nginx config' inside the delivered HTML. The generated HTML contains only '7.0 Remove ANY previous config that owns wa.animitra.in' — the word 'nginx' is missing from the section-7.0 heading (though it is present in surrounding body text and the top-level 'Nginx + HTTPS' heading). Reproduction: `grep -oiE '.{0,50}remove.{0,50}' /app/backend/static/downloads/WA_API_VPS_Install_Guide.html` returns only that variant. Mitigation: rewrite the heading to include 'nginx', e.g. '7.0 Remove ANY previous nginx config that owns wa.animitra.in'. This is a one-word edit in whatever source builds the HTML."
+}

@@ -1,0 +1,641 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>WA_API SaaS — Install Guide for wa.animitra.in</title>
+<style>
+:root {
+  --green: #25D366;
+  --teal: #128C7E;
+  --deep: #0B141A;
+  --muted: #54656F;
+  --line: #E5E7EB;
+  --bg: #FFFFFF;
+  --code-bg: #0f172a;
+  --code-fg: #e2e8f0;
+  --code-green: #25D366;
+  --card: #F7FAF9;
+  --warn: #B45309;
+  --warn-bg: #FEF3C7;
+  --danger: #991B1B;
+  --danger-bg: #FEE2E2;
+  --info: #1E40AF;
+  --info-bg: #DBEAFE;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--deep); }
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 15px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 860px; margin: 0 auto; padding: 48px 28px 96px; }
+
+/* Header banner */
+.hero {
+  border-radius: 20px;
+  background: linear-gradient(135deg, #075E54 0%, #128C7E 55%, #25D366 100%);
+  color: #fff;
+  padding: 48px 40px;
+  margin: 0 0 40px;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: ""; position: absolute; inset: 0;
+  background: radial-gradient(circle at 100% 0%, rgba(255,255,255,0.15), transparent 40%);
+}
+.hero .eyebrow {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase;
+  opacity: 0.85; margin: 0 0 12px;
+}
+.hero h1 {
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 500;
+  font-size: clamp(2rem, 5vw, 3rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin: 0 0 12px;
+  position: relative;
+}
+.hero p { margin: 0; opacity: 0.9; max-width: 620px; position: relative; }
+.hero .meta {
+  margin-top: 24px; display: flex; flex-wrap: wrap; gap: 8px;
+  position: relative;
+}
+.hero .chip {
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.25);
+  padding: 5px 12px; border-radius: 999px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+}
+
+/* Section headings */
+h2 {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 1.75rem; font-weight: 500; letter-spacing: -0.015em;
+  margin: 60px 0 8px; padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+h2:first-of-type { margin-top: 20px; border-top: none; }
+h3 {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.15rem; font-weight: 600;
+  margin: 30px 0 10px; color: var(--deep);
+}
+h4 { margin: 18px 0 6px; font-size: 0.95rem; color: var(--teal); text-transform: uppercase; letter-spacing: 0.06em; }
+
+p { margin: 0 0 14px; color: #2b3236; }
+ul, ol { margin: 0 0 14px; padding-left: 22px; }
+li { margin: 4px 0; }
+
+/* Inline code */
+code {
+  font-family: 'JetBrains Mono', ui-monospace, "SF Mono", monospace;
+  font-size: 0.86em;
+  background: #F0FDF4;
+  color: var(--teal);
+  padding: 2px 6px;
+  border-radius: 6px;
+  border: 1px solid rgba(18,140,126,0.15);
+  word-break: break-all;
+}
+
+/* Code blocks */
+pre {
+  background: var(--code-bg);
+  color: var(--code-fg);
+  padding: 18px 20px;
+  border-radius: 12px;
+  overflow-x: auto;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  line-height: 1.55;
+  margin: 12px 0 20px;
+  box-shadow: 0 2px 8px -3px rgba(11,20,26,0.15);
+}
+pre code { background: transparent; color: inherit; border: none; padding: 0; word-break: normal; }
+pre .cm { color: #94a3b8; font-style: italic; }
+pre .k { color: #25D366; }
+pre .s { color: #fde68a; }
+pre .n { color: #38bdf8; }
+
+/* Callouts */
+.callout {
+  border-left: 4px solid var(--teal);
+  background: #F0FDF4;
+  padding: 14px 18px;
+  border-radius: 0 10px 10px 0;
+  margin: 18px 0;
+}
+.callout.warn { border-color: var(--warn); background: var(--warn-bg); }
+.callout.danger { border-color: var(--danger); background: var(--danger-bg); }
+.callout.info { border-color: var(--info); background: var(--info-bg); }
+.callout .cttl { font-weight: 600; margin: 0 0 4px; }
+
+/* Copy button */
+.code-wrap { position: relative; }
+.code-wrap .copy {
+  position: absolute; top: 10px; right: 10px;
+  background: rgba(255,255,255,0.08);
+  color: #cbd5e1;
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 150ms, color 150ms;
+}
+.code-wrap .copy:hover { background: var(--green); color: #052E1B; border-color: var(--green); }
+
+/* Table */
+table {
+  width: 100%; border-collapse: collapse;
+  margin: 12px 0 20px;
+  border-radius: 10px; overflow: hidden;
+  box-shadow: 0 0 0 1px var(--line);
+}
+th, td { padding: 10px 14px; text-align: left; font-size: 14px; border-bottom: 1px solid var(--line); }
+th { background: #F0FDF4; color: var(--teal); font-weight: 600; }
+tr:last-child td { border-bottom: none; }
+td code { background: #fff; }
+
+/* Toc */
+.toc {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 18px 22px;
+  margin: 0 0 40px;
+}
+.toc h4 { margin: 0 0 10px; color: var(--muted); }
+.toc ol { margin: 0; padding-left: 22px; columns: 2; column-gap: 24px; }
+.toc ol li { break-inside: avoid; }
+.toc a { color: var(--teal); text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+
+/* Print */
+@media print {
+  .noprint, .print-hide { display: none !important; }
+  .wrap { padding: 0; max-width: none; }
+  .hero { background: #128C7E !important; -webkit-print-color-adjust: exact; color-adjust: exact; }
+  pre { page-break-inside: avoid; }
+  h2 { page-break-before: auto; }
+  h2, h3 { page-break-after: avoid; }
+  body { font-size: 12px; }
+}
+
+/* Small screens */
+@media (max-width: 640px) {
+  .wrap { padding: 20px 16px 60px; }
+  .hero { padding: 30px 22px; border-radius: 14px; }
+  .toc ol { columns: 1; }
+  pre { font-size: 12px; }
+}
+
+.print-btn {
+  position: fixed; right: 20px; bottom: 20px; z-index: 10;
+  background: var(--green); color: #052E1B;
+  padding: 12px 20px; border-radius: 999px; border: none;
+  font-weight: 600; cursor: pointer;
+  box-shadow: 0 10px 25px -6px rgba(37,211,102,0.4);
+  font-family: 'Inter', sans-serif; font-size: 14px;
+}
+.print-btn:hover { background: var(--teal); color: #fff; }
+</style>
+</head>
+<body>
+<button class="print-btn noprint" onclick="window.print()">Save as PDF / Print</button>
+<div class="wrap">
+
+<div class="hero">
+  <div class="eyebrow">SELF-HOSTED · WHATSAPP AUTOMATION</div>
+  <h1>WA_API SaaS — Install Guide</h1>
+  <p>Complete step-by-step recipe for deploying WA_API SaaS on your VPS at <strong>wa.animitra.in</strong>, on top of your existing Emergent projects that already use ports 8001 / 8002 / 8003.</p>
+  <div class="meta">
+    <span class="chip">Domain · wa.animitra.in</span>
+    <span class="chip">Backend · :8004</span>
+    <span class="chip">Sidecar · :3005</span>
+    <span class="chip">Folder · /opt/wa_api</span>
+    <span class="chip">DB · wa_api_db</span>
+    <span class="chip">Ubuntu 22.04 / 24.04</span>
+  </div>
+</div>
+
+<div class="toc">
+  <h4>Contents</h4>
+  <ol>
+    <li><a href="#s1">Prepare the VPS</a></li>
+    <li><a href="#s2">Install runtime dependencies</a></li>
+    <li><a href="#s3">Get the app code</a></li>
+    <li><a href="#s4">Configure .env files</a></li>
+    <li><a href="#s5">Install project dependencies</a></li>
+    <li><a href="#s6">Supervisor (process manager)</a></li>
+    <li><a href="#s7">Nginx + HTTPS</a></li>
+    <li><a href="#s8">First-run checks</a></li>
+    <li><a href="#s9">Operational cheat-sheet</a></li>
+    <li><a href="#s10">Security hardening</a></li>
+    <li><a href="#s11">Troubleshooting</a></li>
+    <li><a href="#s12">Upgrade workflow</a></li>
+  </ol>
+</div>
+
+<h2 id="s1">1. Prepare the VPS</h2>
+
+<h3>1.1 Update the system</h3>
+<div class="code-wrap"><pre><code>sudo apt update && sudo apt upgrade -y
+sudo apt install -y build-essential git curl ca-certificates gnupg lsb-release \
+                    software-properties-common ufw fail2ban unzip</code></pre></div>
+
+<h3>1.2 Create a dedicated unix user</h3>
+<p>Never run apps as root. We'll use <code>wa_api</code> and install under <code>/opt/wa_api</code>:</p>
+<div class="code-wrap"><pre><code>sudo adduser --disabled-password --gecos "" wa_api
+sudo mkdir -p /opt/wa_api
+sudo chown -R wa_api:wa_api /opt/wa_api</code></pre></div>
+
+<h3>1.3 Firewall</h3>
+<div class="callout warn">
+<div class="cttl">Do NOT open ports 8004 or 3005 to the public.</div>
+Nginx will proxy them internally over 127.0.0.1. Only 80 / 443 should be public.
+</div>
+<div class="code-wrap"><pre><code>sudo ufw allow OpenSSH
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw --force enable
+sudo ufw status</code></pre></div>
+
+<h2 id="s2">2. Install runtime dependencies</h2>
+
+<h3>2.1 Python 3.11</h3>
+<div class="code-wrap"><pre><code>sudo add-apt-repository ppa:deadsnakes/ppa -y
+sudo apt update
+sudo apt install -y python3.11 python3.11-venv python3.11-dev</code></pre></div>
+
+<h3>2.2 Node.js 20 LTS</h3>
+<div class="code-wrap"><pre><code>curl -fsSL https://deb.nodesource.com/setup_20.x | sudo bash -
+sudo apt install -y nodejs
+node -v && npm -v
+sudo npm install -g yarn</code></pre></div>
+
+<h3>2.3 MongoDB 7 Community Edition</h3>
+<div class="code-wrap"><pre><code>curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc \
+     | sudo gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg --dearmor
+
+echo "deb [signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg] https://repo.mongodb.org/apt/ubuntu $(lsb_release -sc)/mongodb-org/7.0 multiverse" \
+     | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+
+sudo apt update
+sudo apt install -y mongodb-org
+sudo systemctl enable --now mongod</code></pre></div>
+<p>Mongo binds to <code>127.0.0.1:27017</code> by default — safe. WA_API will connect over localhost using its own database (<code>wa_api_db</code>).</p>
+
+<h3>2.4 Nginx &amp; Supervisor</h3>
+<div class="code-wrap"><pre><code>sudo apt install -y nginx certbot python3-certbot-nginx supervisor
+sudo systemctl enable --now nginx supervisor</code></pre></div>
+
+<h2 id="s3">3. Get the application code</h2>
+
+<p>If you're using Emergent's <strong>Save to GitHub</strong>, push from the platform first, then clone:</p>
+<div class="code-wrap"><pre><code>sudo -iu wa_api
+cd /opt/wa_api
+git clone https://github.com/&lt;your-user&gt;/&lt;wa_api-repo&gt;.git .</code></pre></div>
+
+<p>Or upload a ZIP via <code>scp</code> from your local machine:</p>
+<div class="code-wrap"><pre><code># On your local machine:
+scp wa_api.zip wa_api@wa.animitra.in:/opt/wa_api/
+# Back on the VPS, as wa_api:
+cd /opt/wa_api && unzip wa_api.zip && rm wa_api.zip</code></pre></div>
+
+<p>Confirm the structure:</p>
+<div class="code-wrap"><pre><code>ls /opt/wa_api
+# backend/  frontend/  wa-sidecar/  ...</code></pre></div>
+
+<h2 id="s4">4. Configure .env files</h2>
+
+<h3>4.1 Backend .env</h3>
+<div class="code-wrap"><pre><code>cd /opt/wa_api/backend
+nano .env</code></pre></div>
+
+<p>Paste (regenerate the two secrets with the <code>openssl</code> commands shown):</p>
+<div class="code-wrap"><pre><code># ── Database ─────────────────────────────
+MONGO_URL="mongodb://127.0.0.1:27017"
+DB_NAME="wa_api_db"
+
+# ── Auth / JWT ───────────────────────────
+JWT_SECRET="&lt;paste output of: openssl rand -hex 48&gt;"
+JWT_ACCESS_MINUTES=60
+JWT_REFRESH_DAYS=14
+ADMIN_EMAIL="admin@animitra.in"
+ADMIN_PASSWORD="ChangeMeAfterFirstLogin!"
+
+# ── Sidecar ──────────────────────────────
+WA_SIDECAR_URL="http://127.0.0.1:3005"
+SIDECAR_TOKEN="&lt;paste output of: openssl rand -hex 32&gt;"
+
+# ── Public URL (used in emails / QR renders) ──
+FRONTEND_ORIGIN="https://wa.animitra.in"</code></pre></div>
+
+<div class="callout danger">
+<div class="cttl">Never ship default secrets.</div>
+Generate JWT_SECRET and SIDECAR_TOKEN with:
+<pre style="margin-top:10px"><code>openssl rand -hex 48   # for JWT_SECRET
+openssl rand -hex 32   # for SIDECAR_TOKEN</code></pre>
+</div>
+
+<h3>4.2 Sidecar .env</h3>
+<div class="code-wrap"><pre><code>cd /opt/wa_api/wa-sidecar
+nano .env</code></pre></div>
+<div class="code-wrap"><pre><code>PORT=3005
+SIDECAR_TOKEN="&lt;same value as backend&gt;"
+BACKEND_INTERNAL_URL="http://127.0.0.1:8004"</code></pre></div>
+
+<h3>4.3 Frontend .env (build-time)</h3>
+<div class="code-wrap"><pre><code>cd /opt/wa_api/frontend
+nano .env</code></pre></div>
+<div class="code-wrap"><pre><code>REACT_APP_BACKEND_URL=https://wa.animitra.in
+WDS_SOCKET_PORT=443</code></pre></div>
+<div class="callout info">This URL is embedded into the compiled JS bundle. If it says <code>localhost</code>, every API call from the browser will fail.</div>
+
+<h2 id="s5">5. Install project dependencies</h2>
+
+<h3>5.1 Backend (Python)</h3>
+<div class="code-wrap"><pre><code>cd /opt/wa_api/backend
+python3.11 -m venv .venv
+source .venv/bin/activate
+pip install --upgrade pip wheel
+pip install -r requirements.txt
+deactivate</code></pre></div>
+
+<h3>5.2 Sidecar (Node)</h3>
+<div class="code-wrap"><pre><code>cd /opt/wa_api/wa-sidecar
+yarn install --production=false</code></pre></div>
+
+<h3>5.3 Frontend build</h3>
+<div class="code-wrap"><pre><code>cd /opt/wa_api/frontend
+yarn install
+yarn build   # outputs /opt/wa_api/frontend/build/</code></pre></div>
+
+<h2 id="s6">6. Supervisor (keep services alive)</h2>
+
+<p>Leave the <code>wa_api</code> shell:</p>
+<div class="code-wrap"><pre><code>exit
+sudo mkdir -p /var/log/wa_api && sudo chown wa_api:wa_api /var/log/wa_api</code></pre></div>
+
+<h3>6.1 Backend program</h3>
+<div class="code-wrap"><pre><code>sudo nano /etc/supervisor/conf.d/wa_api_backend.conf</code></pre></div>
+<div class="code-wrap"><pre><code>[program:wa_api_backend]
+command=/opt/wa_api/backend/.venv/bin/uvicorn server:app --host 127.0.0.1 --port 8004 --workers 2
+directory=/opt/wa_api/backend
+user=wa_api
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+stdout_logfile=/var/log/wa_api/backend.out.log
+stderr_logfile=/var/log/wa_api/backend.err.log
+environment=PATH="/opt/wa_api/backend/.venv/bin:/usr/bin:/bin"</code></pre></div>
+
+<h3>6.2 Sidecar program</h3>
+<div class="code-wrap"><pre><code>sudo nano /etc/supervisor/conf.d/wa_api_sidecar.conf</code></pre></div>
+<div class="code-wrap"><pre><code>[program:wa_api_sidecar]
+command=/usr/bin/node index.js
+directory=/opt/wa_api/wa-sidecar
+user=wa_api
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+stdout_logfile=/var/log/wa_api/sidecar.out.log
+stderr_logfile=/var/log/wa_api/sidecar.err.log</code></pre></div>
+
+<h3>6.3 Start both</h3>
+<div class="code-wrap"><pre><code>sudo supervisorctl reread
+sudo supervisorctl update
+sudo supervisorctl status
+# Both wa_api_backend and wa_api_sidecar must read RUNNING</code></pre></div>
+
+<p>Tail the logs to confirm no errors:</p>
+<div class="code-wrap"><pre><code>sudo tail -n 100 /var/log/wa_api/backend.err.log
+sudo tail -n 100 /var/log/wa_api/sidecar.err.log</code></pre></div>
+
+<h2 id="s7">7. Nginx + HTTPS</h2>
+
+<div class="callout danger">
+<div class="cttl">7.0 Remove ANY previous config that owns wa.animitra.in</div>
+Nginx returns the FIRST matching <code>server_name</code>. If a leftover config (e.g. the old <em>VMP CRM installer</em>) still claims the domain, WA_API will be invisible.
+</div>
+
+<div class="code-wrap"><pre><code># See every config that mentions the domain
+sudo grep -rli "wa.animitra.in" /etc/nginx/
+
+# See what nginx will actually load for it (read-only)
+sudo nginx -T | grep -B2 -A25 "server_name wa.animitra.in"
+
+# Disable the wrong ones (replace with what the grep showed):
+sudo rm -f /etc/nginx/sites-enabled/vmp-crm.conf
+sudo rm -f /etc/nginx/sites-enabled/default
+
+# Also move the leftover HTML root out of the way (rename, don't delete, until you're sure):
+sudo grep -rli "VMP CRM" /var/www /root /home 2>/dev/null
+sudo mv /var/www/vmp-installer /var/www/_vmp-installer.old  # example</code></pre></div>
+
+<h3>7.1 Create the WA_API site file</h3>
+<div class="code-wrap"><pre><code>sudo nano /etc/nginx/sites-available/wa_api.conf</code></pre></div>
+
+<div class="code-wrap"><pre><code>server {
+    listen 80;
+    server_name wa.animitra.in;
+
+    # Serve the compiled React SPA
+    root /opt/wa_api/frontend/build;
+    index index.html;
+
+    # Everything /api goes to FastAPI on port 8004
+    location /api/ {
+        proxy_pass         http://127.0.0.1:8004;
+        proxy_http_version 1.1;
+        proxy_set_header   Host              $host;
+        proxy_set_header   X-Real-IP         $remote_addr;
+        proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto $scheme;
+        proxy_set_header   Upgrade           $http_upgrade;
+        proxy_set_header   Connection        "upgrade";
+        proxy_read_timeout 3600;
+        client_max_body_size 60m;
+    }
+
+    # SPA fallback
+    location / {
+        try_files $uri /index.html;
+    }
+
+    # Long cache for static assets
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff2?)$ {
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+}</code></pre></div>
+
+<div class="code-wrap"><pre><code>sudo ln -s /etc/nginx/sites-available/wa_api.conf /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl reload nginx</code></pre></div>
+
+<h3>7.2 Verify nginx is really serving WA_API (before HTTPS!)</h3>
+<div class="callout warn">
+<div class="cttl">Run all three checks BEFORE certbot.</div>
+If certbot attaches the cert to the wrong config, you'll be stuck with a cached HTTPS response of the wrong site.
+</div>
+
+<div class="code-wrap"><pre><code># a) Config that owns the domain must point to /opt/wa_api and 127.0.0.1:8004
+sudo nginx -T | grep -B1 -A20 "server_name wa.animitra.in" \
+     | grep -E "root|proxy_pass"
+# Expected:
+#   root /opt/wa_api/frontend/build;
+#   proxy_pass http://127.0.0.1:8004;
+
+# b) Site serves the WA_API landing page
+curl -s http://wa.animitra.in/ | grep -o "WA_API\|VMP CRM" | head -1
+# Expected:  WA_API      ← if you see "VMP CRM" go back to 7.0
+
+# c) /api is proxied to FastAPI, not falling back to the SPA
+curl -s http://wa.animitra.in/api/health
+# Expected: {"ok":true,"sidecar":true,"version":"2.0.0"}
+# If you see &lt;!DOCTYPE html&gt;, the location /api/ block is missing / not active</code></pre></div>
+
+<h3>7.3 HTTPS with Let's Encrypt</h3>
+<div class="code-wrap"><pre><code>sudo certbot --nginx -d wa.animitra.in \
+             --agree-tos -m admin@animitra.in \
+             --redirect --non-interactive
+sudo systemctl enable --now certbot.timer   # auto-renew twice daily</code></pre></div>
+
+<h2 id="s8">8. First-run checks</h2>
+
+<table>
+  <tr><th>Check</th><th>Expected</th></tr>
+  <tr><td><code>curl -sI https://wa.animitra.in/api/health</code></td><td><code>HTTP/2 200</code> + JSON body</td></tr>
+  <tr><td>Open <code>https://wa.animitra.in</code></td><td>WA_API landing page (mobile-responsive)</td></tr>
+  <tr><td>Sign in at <code>/login</code> with ADMIN_EMAIL / ADMIN_PASSWORD</td><td>Lands on <code>/admin</code> light-theme panel</td></tr>
+  <tr><td>Admin → sidebar → <strong>Password</strong> button</td><td>Change the seeded admin password immediately</td></tr>
+  <tr><td>Admin → <strong>SMTP</strong></td><td>Save host/port/user/password → click <em>Send test</em></td></tr>
+  <tr><td>User dashboard → <strong>Sessions</strong> → <em>NEW SESSION</em></td><td>Scan the QR from your phone → badge flips to <code>CONNECTED</code></td></tr>
+  <tr><td>Create an API key on <code>/app/keys</code>, then test</td><td>See snippet below</td></tr>
+</table>
+
+<div class="code-wrap"><pre><code># From any laptop:
+curl -H "Authorization: Bearer &lt;YOUR_KEY&gt;" \
+     https://wa.animitra.in/api/v1/sessions/primary/status
+# {"id":"primary","connected":true,"status":"connected","phone":"91...","checked_at":"..."}</code></pre></div>
+
+<h2 id="s9">9. Operational cheat-sheet</h2>
+<table>
+  <tr><th>Task</th><th>Command</th></tr>
+  <tr><td>Tail backend logs</td><td><code>sudo tail -f /var/log/wa_api/backend.err.log</code></td></tr>
+  <tr><td>Tail sidecar logs</td><td><code>sudo tail -f /var/log/wa_api/sidecar.err.log</code></td></tr>
+  <tr><td>Restart backend</td><td><code>sudo supervisorctl restart wa_api_backend</code></td></tr>
+  <tr><td>Restart sidecar</td><td><code>sudo supervisorctl restart wa_api_sidecar</code></td></tr>
+  <tr><td>Reload nginx</td><td><code>sudo systemctl reload nginx</code></td></tr>
+  <tr><td>MongoDB shell</td><td><code>mongosh wa_api_db</code></td></tr>
+  <tr><td>Daily Mongo backup</td><td><code>mongodump --db wa_api_db --out /var/backups/mongo_$(date +%F)</code></td></tr>
+</table>
+
+<h4>Ports summary for this VPS</h4>
+<table>
+  <tr><th>Project</th><th>Backend</th><th>Extra</th></tr>
+  <tr><td>Emergent project #1</td><td><code>8001</code></td><td>—</td></tr>
+  <tr><td>Emergent project #2</td><td><code>8002</code></td><td>—</td></tr>
+  <tr><td>Emergent project #3</td><td><code>8003</code></td><td>—</td></tr>
+  <tr><td><strong>WA_API (this)</strong></td><td><code>8004</code></td><td><code>3005</code> (Node/Baileys)</td></tr>
+</table>
+
+<h2 id="s10">10. Security hardening</h2>
+<ul>
+  <li><strong>Key-only SSH</strong>: after adding your public key, edit <code>/etc/ssh/sshd_config</code> → <code>PasswordAuthentication no</code> → <code>sudo systemctl restart ssh</code>.</li>
+  <li><strong>Fail2ban</strong> is already installed; default rules cover SSH.</li>
+  <li><strong>MongoDB auth</strong> (for shared Mongo): create an admin user, set <code>security.authorization: enabled</code> in <code>/etc/mongod.conf</code>, update MONGO_URL to <code>mongodb://user:pass@127.0.0.1:27017/wa_api_db</code>.</li>
+  <li><strong>Unattended upgrades</strong>: <code>sudo apt install -y unattended-upgrades</code>.</li>
+  <li>Rotate JWT_SECRET &amp; SIDECAR_TOKEN every 90 days — restart both supervisor programs after.</li>
+</ul>
+
+<h2 id="s11">11. Troubleshooting</h2>
+
+<h3>Backend won't start</h3>
+<div class="code-wrap"><pre><code>sudo tail -n 200 /var/log/wa_api/backend.err.log</code></pre></div>
+<ul><li>Wrong Python → recreate the venv with <code>python3.11 -m venv .venv</code>.</li>
+<li>Mongo not running → <code>sudo systemctl status mongod</code>.</li></ul>
+
+<h3>Sidecar won't start</h3>
+<div class="code-wrap"><pre><code>sudo tail -n 200 /var/log/wa_api/sidecar.err.log</code></pre></div>
+<ul><li>Port 3005 in use → <code>sudo ss -tlnp | grep 3005</code>.</li>
+<li>SIDECAR_TOKEN mismatch → must be identical in both <code>.env</code> files.</li></ul>
+
+<h3>QR never renders</h3>
+<p>The sidecar can't reach WhatsApp servers. Check <code>curl -I https://web.whatsapp.com</code> from the VPS. Some low-cost VPS providers block outbound WebSocket — contact support.</p>
+
+<h3>CRM sees "not connected" even after scanning</h3>
+<div class="code-wrap"><pre><code>curl -H "Authorization: Bearer &lt;KEY&gt;" \
+     https://wa.animitra.in/api/v1/sessions/&lt;slug&gt;/status</code></pre></div>
+<p>If <code>sidecar_reachable: false</code>, your backend can't reach the sidecar — check supervisor status and <code>WA_SIDECAR_URL</code>.</p>
+
+<h3>Domain shows a different project (VMP CRM installer, cPanel, etc.)</h3>
+<p>An old nginx server-block still owns the domain. Return to <a href="#s7">section 7.0</a> and disable it. If HTTPS still shows the old page after fixing nginx, certbot bound the cert to the wrong config — reissue it:</p>
+<div class="code-wrap"><pre><code>sudo certbot delete --cert-name wa.animitra.in
+sudo certbot --nginx -d wa.animitra.in \
+             --agree-tos -m admin@animitra.in \
+             --redirect --non-interactive</code></pre></div>
+
+<h3>502 from Nginx</h3>
+<p>9 times out of 10 the backend crashed. Check <code>supervisorctl status wa_api_backend</code>, tail the log, fix, restart.</p>
+
+<h2 id="s12">12. Upgrade workflow</h2>
+<div class="code-wrap"><pre><code>sudo -iu wa_api
+cd /opt/wa_api
+git pull
+
+# Python deps
+cd backend && source .venv/bin/activate
+pip install -r requirements.txt
+deactivate
+
+# Node deps
+cd ../wa-sidecar && yarn install --production=false
+cd ../frontend && yarn install
+yarn build
+
+exit
+sudo supervisorctl restart wa_api_backend wa_api_sidecar
+sudo systemctl reload nginx</code></pre></div>
+
+<p style="margin-top:60px; padding-top:24px; border-top:1px solid var(--line); font-size:13px; color:var(--muted);">
+End of guide. Keep this HTML file with your <code>.env</code> credentials in a password manager. Rebuilding a VPS from scratch with sections 1–8 takes about 30–40 minutes.
+</p>
+
+</div>
+
+<script>
+// Add "Copy" buttons to every code block
+document.querySelectorAll('.code-wrap').forEach((wrap) => {
+  const pre = wrap.querySelector('pre');
+  if (!pre) return;
+  const btn = document.createElement('button');
+  btn.className = 'copy noprint';
+  btn.type = 'button';
+  btn.textContent = 'Copy';
+  btn.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(pre.innerText);
+      btn.textContent = 'Copied ✓';
+      setTimeout(() => (btn.textContent = 'Copy'), 1400);
+    } catch (e) {
+      btn.textContent = 'Ctrl+C';
+    }
+  });
+  wrap.appendChild(btn);
+});
+</script>
+</body>
+</html>

@@ -186,6 +186,7 @@ from pathlib import Path as _P
 
 _DOWNLOADS_DIR = _P(__file__).parent / "static" / "downloads"
 _INSTALL_PDF = _DOWNLOADS_DIR / "WA_API_VPS_Install_Guide.pdf"
+_INSTALL_HTML = _DOWNLOADS_DIR / "WA_API_VPS_Install_Guide.html"
 
 @misc.get("/downloads/vps-install-guide.pdf")
 async def download_install_pdf():
@@ -205,7 +206,21 @@ async def download_install_pdf():
         path=str(_INSTALL_PDF),
         media_type="application/pdf",
         filename="WA_API_VPS_Install_Guide.pdf",
-        headers={"Cache-Control": "public, max-age=300"},
+        headers={"Cache-Control": "public, max-age=60"},
+    )
+
+
+@misc.get("/downloads/vps-install-guide.html")
+async def download_install_html():
+    """Standalone HTML install guide (baked with domain=wa.animitra.in, port=8004,
+    folder=/opt/wa_api). Open in any browser or print to PDF."""
+    if not _INSTALL_HTML.exists():
+        raise HTTPException(status_code=404, detail="Install guide (HTML) is not available.")
+    return FileResponse(
+        path=str(_INSTALL_HTML),
+        media_type="text/html; charset=utf-8",
+        filename="WA_API_VPS_Install_Guide.html",
+        headers={"Cache-Control": "public, max-age=60"},
     )
 
 # ---------- Routers ----------

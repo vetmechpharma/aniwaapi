@@ -89,15 +89,26 @@ export default function AdminOverview() {
             <span className="adm-badge adm-badge-green">3005</span> (sidecar).
           </div>
         </div>
-        <a
-          href="/api/downloads/vps-install-guide.pdf"
-          target="_blank"
-          rel="noreferrer"
-          className="adm-btn adm-btn-primary shrink-0"
-          data-testid="download-install-pdf"
-        >
-          <DownloadSimple size={14} weight="bold"/> Download PDF
-        </a>
+        <div className="flex flex-col sm:flex-row gap-2 shrink-0">
+          <a
+            href="/api/downloads/vps-install-guide.html"
+            target="_blank"
+            rel="noreferrer"
+            className="adm-btn adm-btn-primary"
+            data-testid="download-install-html"
+          >
+            <FileText size={14} weight="bold"/> Open HTML
+          </a>
+          <a
+            href="/api/downloads/vps-install-guide.pdf"
+            target="_blank"
+            rel="noreferrer"
+            className="adm-btn adm-btn-secondary"
+            data-testid="download-install-pdf"
+          >
+            <DownloadSimple size={14} weight="bold"/> Download PDF
+          </a>
+        </div>
       </div>
     </div>
   );
