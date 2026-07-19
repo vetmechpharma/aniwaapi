@@ -295,7 +295,7 @@ sudo tail -n 100 /var/log/wa_api/sidecar.err.log
 
 ## 7. Configure Nginx (HTTPS + reverse proxy)
 
-### 7.0 ⚠ Remove ANY previous nginx config that owns this domain
+### 7.0 Remove ANY previous nginx config that owns this domain
 
 If you previously ran another installer (e.g. **VMP CRM installer**, cPanel, another Emergent project) on the same domain, its config **will keep serving the old page** and hide WA_API completely — because nginx picks the first `server_name` match. Clean it up before you continue:
 
@@ -372,7 +372,7 @@ sudo nginx -t
 sudo systemctl reload nginx
 ```
 
-### 7.2 ⚠ Verify nginx is really serving WA_API (not the old site)
+### 7.2 Verify nginx is really serving WA_API (not the old site)
 
 Before you enable HTTPS, run these three commands. All three MUST pass — otherwise HTTPS will get issued for the wrong site and you'll be stuck.
 
