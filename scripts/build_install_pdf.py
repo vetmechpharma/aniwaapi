@@ -6,8 +6,31 @@ Output: /app/backend/static/downloads/WA_API_VPS_Install_Guide.pdf
 """
 import os
 import re
+import subprocess
+import sys
 from pathlib import Path
 from fpdf import FPDF
+
+# Ensure the DejaVu Unicode fonts we need are actually present on the host.
+# In fresh containers the package may be missing, so install it if needed.
+def _ensure_fonts() -> None:
+    font_path = Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf")
+    if font_path.exists():
+        return
+    print("Installing fonts-dejavu-core (needed for PDF Unicode glyphs)…", flush=True)
+    for cmd in (
+        ["apt-get", "install", "-y", "--no-install-recommends", "fonts-dejavu-core"],
+        ["sudo", "apt-get", "install", "-y", "--no-install-recommends", "fonts-dejavu-core"],
+    ):
+        try:
+            subprocess.check_call(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            if font_path.exists():
+                return
+        except Exception:
+            continue
+    raise RuntimeError("Could not install fonts-dejavu-core. Install manually: apt-get install -y fonts-dejavu-core")
+
+_ensure_fonts()
 
 MD_PATH = Path("/app/docs/VPS_INSTALL.md")
 OUT_DIR = Path("/app/backend/static/downloads")

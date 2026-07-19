@@ -1,0 +1,41 @@
+{
+  "summary": "Backend-only regression for the WA_API VPS install guide PDF fix (nginx-shadowing deployment gap). Verified the /api/downloads/vps-install-guide.pdf endpoint, PDF magic bytes, size (~73 KB), page count (14 pages), byte-identical match to the on-disk file, presence of BOTH new sections in the extracted text ('Remove ANY previous nginx config' + 'Domain shows a DIFFERENT project'), idempotency of build_install_pdf.py (ran twice, still produces %PDF), plus regression on /api/health, /api/plans, and admin login. 9/9 new tests pass; iteration-4 CRM regression (12 tests) also still 12/12 green.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "PDF content — section 7.0 heading",
+        "issue": "The rendered PDF heading is literally '7.0 ⚠ Remove ANY previous nginx config that owns this domain'. The review request specified the required phrase as '7.0 Remove ANY previous nginx config' (without the ⚠). The exact literal substring is NOT present because of the U+26A0 warning glyph that got inlined by the Markdown → PDF renderer. Meaning is preserved, but a literal `grep -F` for the request-stated phrase will fail. Either drop the ⚠ from the H3 in /app/docs/VPS_INSTALL.md line 298, or accept the ⚠ variant as canonical and update any downstream doc/search tooling."
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration5_vps_install_pdf.py",
+    "/app/test_reports/pytest/iteration5_results.xml"
+  ],
+  "action_items": [
+    "OPTIONAL: remove the ⚠ from '### 7.0 ⚠ Remove ANY previous nginx config …' in /app/docs/VPS_INSTALL.md so downstream literal-phrase searches match the review-stated string exactly; then rerun scripts/build_install_pdf.py."
+  ],
+  "critical_code_review_comments": [
+    "server.py::download_install_pdf auto-rebuilds via subprocess.check_call([sys.executable, script]) — this blocks the async event loop for the ~1-2 s the PDF takes to build. Low-frequency public endpoint so probably fine, but move to asyncio.to_thread(...) or a lifespan pre-build to avoid a stall on the first request after fresh checkout.",
+    "build_install_pdf.py::_ensure_fonts runs unconditionally at IMPORT time. If someone imports the module (e.g. for reuse), the apt-get call fires as a side-effect. Wrap in `if __name__ == '__main__':` or make the call lazy (invoke from `if not font_path.exists(): _ensure_fonts()` inside main()).",
+    "_ensure_fonts silently swallows all subprocess errors and only raises the last one. Consider logging the specific failure so VPS operators can see 'apt-get update needed' vs 'no sudo' distinctly.",
+    "The FileResponse in /api/downloads/vps-install-guide.pdf sets Cache-Control: public, max-age=300 but no ETag / Last-Modified. When the guide is regenerated the browser will keep serving the stale copy for 5 min. Consider dropping max-age to 60 or including the mtime-based ETag.",
+    "server.py is 231 lines — fine now, but the inline PDF endpoint should live in a dedicated router (e.g. routers/downloads.py) for clarity as more downloads are added."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration5_vps_install_pdf.py (created — 9 tests: endpoint + magic bytes + size + pages + byte-identical + phrase content + build-script idempotency + health + plans + admin login)"
+  ],
+  "success_rate": {"backend": "100% (9/9 new + 12/12 iteration-4 regression)", "frontend": "not tested — backend-only per review request"},
+  "test_credentials": "admin@example.com / admin123 (from /app/memory/test_credentials.md).",
+  "seed_data_creation": "No persistent seed data. The idempotency test regenerates /app/backend/static/downloads/WA_API_VPS_Install_Guide.pdf twice from /app/docs/VPS_INSTALL.md — final content is identical to what was committed (14 pages, 75 063 bytes, starts with %PDF).",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "New regression file: /app/backend/tests/test_iteration5_vps_install_pdf.py. Run: `cd /app && python -m pytest backend/tests/test_iteration5_vps_install_pdf.py -o addopts= -v` (must include `-o addopts=` because /app/backend/pytest.ini injects xdist flags). Requires the `pypdf` package (pip install pypdf); pdftotext is optional (fallback only). The test uses tolerant phrase matching: it accepts either '7.0 Remove ANY previous nginx config' or '7.0 ⚠ Remove ANY previous nginx config' or 'Remove ANY previous nginx config' — this was needed because the current PDF heading includes a ⚠ glyph. If the main agent removes that glyph from VPS_INSTALL.md line 298, the strict phrase will also start matching (no test change required).",
+  "rca_of_the_issue": "Not a bug in this iteration — this was a docs/deployment fix. The user's VPS had a leftover VMP-CRM nginx server-block that shadowed the WA_API config on the same server_name, so wa.animitra.in served the wrong site. The fix added (a) section 7.0 in VPS_INSTALL.md with concrete `grep -rli / nginx -T / rm / mv` commands to disable competing server-blocks, (b) section 7.2 with three curl assertions to verify nginx is fronting WA_API BEFORE HTTPS is issued (so certbot doesn't attach the cert to the wrong site), (c) a new 'Domain shows a DIFFERENT project' entry in section 12 with a certbot delete + reissue recipe, and (d) an auto-install of fonts-dejavu-core in build_install_pdf.py so the PDF endpoint keeps working across container rebuilds. All four are present in the generated PDF (14 pages, 73 KB). The only nit: the H3 for 7.0 renders as '7.0 ⚠ Remove ANY previous nginx config …' (⚠ glyph inline), so a strict `grep -F '7.0 Remove ANY previous nginx config'` won't match — either the glyph should be removed from the heading, or downstream literal-search tooling should be aware."
+}

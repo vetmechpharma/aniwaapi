@@ -295,6 +295,31 @@ sudo tail -n 100 /var/log/wa_api/sidecar.err.log
 
 ## 7. Configure Nginx (HTTPS + reverse proxy)
 
+### 7.0 ⚠ Remove ANY previous nginx config that owns this domain
+
+If you previously ran another installer (e.g. **VMP CRM installer**, cPanel, another Emergent project) on the same domain, its config **will keep serving the old page** and hide WA_API completely — because nginx picks the first `server_name` match. Clean it up before you continue:
+
+```bash
+# 1. See EVERY nginx config that mentions your target domain
+sudo grep -rli "wa.yourdomain.com" /etc/nginx/
+
+# 2. See what nginx is actually going to load (safe read-only)
+sudo nginx -T | grep -B2 -A25 "server_name wa.yourdomain.com"
+
+# 3. Disable the ones that are NOT this project. Example (replace filenames with what step 1 shows):
+sudo rm -f /etc/nginx/sites-enabled/vmp-crm.conf
+sudo rm -f /etc/nginx/sites-enabled/default          # only if it points to /var/www/html
+# If the old server_name is inside a shared /etc/nginx/conf.d/*.conf file,
+# open it and DELETE the entire `server { ... }` block for wa.yourdomain.com.
+
+# 4. Also delete the leftover HTML root (or you'll get confused later):
+sudo grep -rli "VMP CRM" /var/www /root /home 2>/dev/null
+# Then move it out of the way:
+sudo mv /var/www/vmp-installer /var/www/_vmp-installer.old   # rename, don't rm, until you're sure
+```
+
+### 7.1 Create the WA_API site file
+
 Create the site file:
 
 ```bash
@@ -345,6 +370,30 @@ Enable, test, reload:
 sudo ln -s /etc/nginx/sites-available/wa_api.conf /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl reload nginx
+```
+
+### 7.2 ⚠ Verify nginx is really serving WA_API (not the old site)
+
+Before you enable HTTPS, run these three commands. All three MUST pass — otherwise HTTPS will get issued for the wrong site and you'll be stuck.
+
+```bash
+# a) Confirm the config that owns the domain points to /opt/wa_api/frontend/build
+sudo nginx -T | grep -B1 -A20 "server_name wa.yourdomain.com" \
+     | grep -E "root|proxy_pass"
+# Expected output must include:
+#   root /opt/wa_api/frontend/build;
+#   proxy_pass http://127.0.0.1:8004;
+
+# b) Hit the site over plain HTTP — should serve the WA_API landing page HTML (contains "WA_API")
+curl -s http://wa.yourdomain.com/ | grep -o "WA_API\|VMP CRM" | head -1
+# Expected: WA_API      ([X] if you see "VMP CRM", step 7.0 wasn't done — go back!)
+
+# c) Hit /api/health — MUST return JSON, not HTML
+curl -s http://wa.yourdomain.com/api/health
+# Expected: {"ok":true,"sidecar":true,"version":"2.0.0"}
+# [X] If you see "<!DOCTYPE html>" instead, nginx is NOT proxying /api → 8004.
+#    That means (i) the wa_api config isn't the active one, or (ii) the
+#    `location /api/` block is missing / wrong. Fix and re-run step 7.
 ```
 
 Point your DNS `A` record `wa.yourdomain.com → <VPS_IP>` and wait for propagation.
@@ -451,7 +500,35 @@ All internal ports are bound to `127.0.0.1` — the only public ports remain **8
 
 **"Not connected" showing in the CRM** even after scanning — hit `GET /api/v1/sessions/<slug>/status`. If `sidecar_reachable=false` your backend can't reach the sidecar → check supervisor status and the `WA_SIDECAR_URL` env value.
 
-**502 from Nginx** — 9 times out of 10 the backend crashed. `supervisorctl status wa_api_backend`, tail the log, fix, restart.
+**502 from Nginx** - 9 times out of 10 the backend crashed. `supervisorctl status wa_api_backend`, tail the log, fix, restart.
+
+**Domain shows a DIFFERENT project (e.g. old VMP CRM installer)** - your VPS still has an older nginx server-block claiming the same `server_name`. Nginx returns the first match, so WA_API is invisible.
+
+Diagnose:
+
+```bash
+sudo grep -rli "wa.yourdomain.com" /etc/nginx/            # every config that owns the domain
+sudo nginx -T | grep -B1 -A25 "server_name wa.yourdomain.com" | grep -E "root|proxy_pass"
+```
+
+You should see exactly ONE `root /opt/wa_api/frontend/build;` and one `proxy_pass http://127.0.0.1:8004;`. If you see a `root /var/www/vmp-installer;` (or any other path) or a competing server block, disable it and reload:
+
+```bash
+sudo rm -f /etc/nginx/sites-enabled/vmp-crm.conf              # or the offending file
+sudo rm -f /etc/nginx/sites-enabled/default
+sudo nginx -t && sudo systemctl reload nginx
+
+# Re-verify:
+curl -s http://wa.yourdomain.com/api/health       # must return JSON
+curl -s http://wa.yourdomain.com/ | head -c 400   # must contain "WA_API"
+```
+
+If `curl https://wa.yourdomain.com/api/health` returns HTML but the plain-HTTP variant works, `certbot` installed the certificate for the WRONG site earlier. Re-run:
+
+```bash
+sudo certbot delete --cert-name wa.yourdomain.com
+sudo certbot --nginx -d wa.yourdomain.com --agree-tos -m admin@yourdomain.com --redirect --non-interactive
+```
 
 ---
 
