@@ -1,0 +1,31 @@
+{
+  "summary": "Backend-only retest of VPS install guide v2 (isolation-first, ~17.7KB). Ran existing regression suite iteration6 (10 passed, 1 skipped) plus new iteration7_extras suite (4 passed) covering size<30KB, isolation namespaces, §0 pre-flight commands verbatim, §8 uninstall commands verbatim. Total: 14 passed, 1 skipped, 0 failed.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_iteration6_vps_install_html.py",
+    "/app/backend/tests/test_iteration7_vps_v2_extras.py",
+    "/app/test_reports/pytest/iteration7_results.xml",
+    "/app/test_reports/pytest/iteration7_extras.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": ["/app/backend/tests/test_iteration7_vps_v2_extras.py"],
+  "success_rate": {"backend": "100%", "frontend": "skipped"},
+  "test_credentials": "admin@example.com / admin123 (validated - login 200 OK)",
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "HTML guide v2 is 17757 bytes. All baked literals, isolation namespaces, pre-flight commands, and uninstall commands verified verbatim. PDF endpoint + health + plans + admin login regressions all pass. Negative 404 test restores file correctly. File left untouched post-test.",
+  "verified_items": [
+    "HTML endpoint 200 text/html, doctype, 17757 bytes (within 15-30KB)",
+    "All 5 baked literals: wa.animitra.in, /opt/wa_api, 127.0.0.1:8004, :3005, admin@animitra.in",
+    "All 6 required section markers (isolation guarantees, pre-flight, add-only, https + verify, domain shows a different project, uninstall)",
+    "Isolation namespaces (wa_api_backend, wa_api_sidecar, wa_api_db, /var/log/wa_api, sites-available/wa_api.conf)",
+    "§0 pre-flight collision-check commands verbatim (ss -tlnp | grep -E, id wa_api 2>/dev/null, test -e /opt/wa_api, grep -rli \"wa.animitra.in\" /etc/nginx/)",
+    "§8 uninstall commands verbatim (supervisorctl stop wa_api_backend wa_api_sidecar, sites-enabled/wa_api.conf, db.dropDatabase())",
+    "PDF regression: 200 application/pdf with %PDF magic",
+    "Health, plans, admin login regressions pass",
+    "404 on missing file (not 500); file restored post-test"
+  ]
+}

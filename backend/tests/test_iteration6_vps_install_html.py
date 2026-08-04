@@ -47,9 +47,13 @@ BAKED_LITERALS = [
 ]
 
 REQUIRED_HEADINGS_CI = [
-    "remove any previous nginx config",
-    "verify nginx is really serving wa_api",
-    "domain shows a different project",
+    # v2 (short/isolation-first) — semantics preserved from v1, wording changed:
+    "isolation guarantees",           # explicit promise not to touch other projects
+    "pre-flight",                     # collision check before install
+    "add-only",                       # nginx add-only policy (replaces "Remove ANY previous nginx config")
+    "https + verify",                 # 3 checks before HTTPS (replaces "Verify nginx is really serving WA_API")
+    "domain shows a different project",  # troubleshooting for wrong-page-served issue
+    "uninstall",                      # clean rollback section (new in v2)
 ]
 
 
