@@ -56,8 +56,42 @@ async function forwardToBackend(payload) {
 // "retry receipt", we can re-encrypt and resend from the same content.
 // Fixes the recipient-side "Waiting for this message. This may take a while."
 // LRU-capped so a busy account can't leak memory.
+// Also persisted to disk so a sidecar restart doesn't lose in-flight retries.
 const MESSAGE_CACHE_MAX = parseInt(process.env.MESSAGE_CACHE_MAX || '2000', 10);
+const MESSAGE_CACHE_PERSIST_EVERY_MS = 5000;  // debounced flush
 const messageCaches = new Map(); // sessionId -> Map<messageId, message-proto>
+const persistTimers = new Map(); // sessionId -> Timeout
+
+function cacheFilePath(sessionId) {
+  return path.join(SESSIONS_DIR, sessionId, '_msg_cache.json');
+}
+
+function loadCacheFromDisk(sessionId) {
+  try {
+    const p = cacheFilePath(sessionId);
+    if (!fs.existsSync(p)) return;
+    const raw = fs.readFileSync(p, 'utf8');
+    const arr = JSON.parse(raw);
+    if (!Array.isArray(arr)) return;
+    const c = new Map();
+    for (const [k, v] of arr) c.set(k, v);
+    messageCaches.set(sessionId, c);
+  } catch (_) { /* corrupt cache is fine — start empty */ }
+}
+
+function schedulePersist(sessionId) {
+  if (persistTimers.has(sessionId)) return;
+  const t = setTimeout(() => {
+    persistTimers.delete(sessionId);
+    try {
+      const c = messageCaches.get(sessionId);
+      if (!c) return;
+      const arr = Array.from(c.entries());
+      fs.writeFileSync(cacheFilePath(sessionId), JSON.stringify(arr));
+    } catch (_) { /* disk full / race — drop silently */ }
+  }, MESSAGE_CACHE_PERSIST_EVERY_MS);
+  persistTimers.set(sessionId, t);
+}
 
 function getCache(sessionId) {
   let c = messageCaches.get(sessionId);
@@ -75,9 +109,11 @@ function cacheMessage(sessionId, messageId, message) {
     if (oldest === undefined) break;
     c.delete(oldest);
   }
+  schedulePersist(sessionId);
 }
 
 async function startSession(sessionId, opts = {}) {
+  loadCacheFromDisk(sessionId);
   if (sessions.has(sessionId) && sessions.get(sessionId).sock) {
     return sessions.get(sessionId);
   }

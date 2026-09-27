@@ -475,12 +475,21 @@ async def submit_utr(payment_id: str = Form(...), utr: str = Form(...),
         raise HTTPException(status_code=400, detail=f"Payment already {p['status']}")
     update = {"utr_number": utr.strip(), "status": "submitted", "submitted_at": now_iso()}
     if screenshot is not None:
-        ext = Path(screenshot.filename or "img").suffix.lower() or ".png"
-        safe = f"{payment_id}{ext}"
-        dest = UPLOAD_DIR / safe
-        with dest.open("wb") as f:
-            shutil.copyfileobj(screenshot.file, f)
-        update["screenshot_path"] = safe
+        # Store screenshot as base64 inside the payment doc — small (~200 KB max),
+        # infrequent (one per subscription), and works identically on Emergent pods
+        # and on user VPS installs (no shared disk needed).
+        raw = await screenshot.read()
+        MAX_BYTES = 2 * 1024 * 1024  # 2 MB safety cap
+        if len(raw) > MAX_BYTES:
+            raise HTTPException(status_code=400, detail="Screenshot too large (max 2 MB)")
+        ct = (screenshot.content_type or "image/png").lower()
+        if not ct.startswith("image/"):
+            raise HTTPException(status_code=400, detail="Screenshot must be an image")
+        import base64 as _b64
+        update["screenshot_data"] = _b64.b64encode(raw).decode("ascii")
+        update["screenshot_content_type"] = ct
+        # Legacy flag for the admin UI to know a screenshot exists
+        update["screenshot_path"] = "db"
     await db.payments.update_one({"_id": p["_id"]}, {"$set": update})
     return {"ok": True, "message": "UTR submitted. Awaiting admin verification."}
 
@@ -828,10 +837,25 @@ async def admin_list_payments(status: Optional[str] = None, _a=Depends(require_a
 
 @router.get("/admin/payments/{pid}/screenshot")
 async def admin_payment_screenshot(pid: str, _a=Depends(require_admin)):
+    from starlette.responses import Response as _RawResponse
+    import base64 as _b64
     p = await db.payments.find_one({"_id": ObjectId(pid)})
     if not p or not p.get("screenshot_path"):
         raise HTTPException(status_code=404, detail="No screenshot")
-    return FileResponse(UPLOAD_DIR / p["screenshot_path"])
+    # New (base64-in-Mongo) storage
+    if p.get("screenshot_data"):
+        try:
+            raw = _b64.b64decode(p["screenshot_data"])
+        except Exception:
+            raise HTTPException(status_code=500, detail="Screenshot data corrupted")
+        return _RawResponse(content=raw,
+                            media_type=p.get("screenshot_content_type") or "image/png",
+                            headers={"Cache-Control": "private, max-age=600"})
+    # Legacy: pod-local file (kept only for old payments created before v2.1)
+    legacy_path = UPLOAD_DIR / p["screenshot_path"]
+    if legacy_path.exists():
+        return FileResponse(legacy_path)
+    raise HTTPException(status_code=404, detail="Screenshot no longer available")
 
 @router.post("/admin/payments/{pid}/verify")
 async def admin_verify_payment(pid: str, body: VerifyPaymentIn, admin=Depends(require_admin)):

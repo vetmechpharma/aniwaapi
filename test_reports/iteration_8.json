@@ -1,0 +1,24 @@
+{
+  "summary": "Verified Baileys getMessage cache fix in /app/wa-sidecar/index.js. 15/15 pytest cases pass: 8 static-code assertions on the fix (getCache/cacheMessage/LRU/getMessage/cache purge/call-sites at send-text, send-media, broadcast, messages.upsert), 3 sidecar runtime checks (boot log line, /health 200 with token, 401 without), and 4 FastAPI regression checks (/api/health, /api/auth/login as admin@example.com, /api/sessions listing).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_sidecar_and_backend.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "getMessage placeholder returns {conversation: ''} on cache miss — this satisfies the Signal layer but the recipient will still be stuck on 'Waiting…' if the message id isn't in the cache (e.g., after sidecar restart, since cache is in-memory only). Consider persisting cache to disk (e.g., alongside session creds) so restarts don't lose in-flight retry context.",
+    "In reconnect branch (connection close, shouldReconnect=true) sessions.delete(sessionId) is called but messageCaches is NOT purged — this is correct for retry purposes but means a permanent disconnect that never hits 'logged_out' (e.g., replaced=440) could leak the cache indefinitely for a re-created socket with the same sessionId (new cache overwrites). Not critical, LRU still caps at 2000.",
+    "Cache stores msg.message from messages.upsert without any size validation; a very large document/video would still count as 1 entry but consume memory. MESSAGE_CACHE_MAX limits count but not bytes.",
+    "getMessage callback is created per-startSession closure; the sessionId is closed-over correctly, so it is safe."
+  ],
+  "updated_files": ["/app/backend/tests/test_sidecar_and_backend.py"],
+  "success_rate": {"backend": "100%", "frontend": "not tested (skipped per request)"},
+  "test_credentials": "admin@example.com / admin123 (verified working)",
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Sidecar getMessage cache fix is wired correctly and verified via pytest static + runtime assertions. Real WhatsApp retry-receipt behavior cannot be simulated in-container (needs a paired handset). The fix should be validated end-to-end by main user by sending a message from a paired session and confirming recipient doesn't see 'Waiting for this message'. All previous FastAPI endpoints remain functional; no regression detected.",
+  "rca of the issue": "Recipient stuck on 'Waiting for this message' is WhatsApp's UI when a Signal-Protocol decrypt fails and the retry receipt returns to the sender with no getMessage callback. Baileys therefore cannot re-encrypt+resend the original protobuf. Fix adds an in-memory LRU cache keyed by messageId, populated (a) inline right after sendMessage() in send-text/send-media/broadcast and (b) in messages.upsert when fromMe=true; getMessage returns the cached proto or a benign placeholder. Purged on logout/delete."
+}
