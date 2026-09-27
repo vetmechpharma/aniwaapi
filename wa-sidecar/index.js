@@ -51,6 +51,32 @@ async function forwardToBackend(payload) {
   }
 }
 
+// Per-session message cache used by Baileys' getMessage() callback so that when
+// a recipient's phone can't decrypt one of our outgoing messages and sends a
+// "retry receipt", we can re-encrypt and resend from the same content.
+// Fixes the recipient-side "Waiting for this message. This may take a while."
+// LRU-capped so a busy account can't leak memory.
+const MESSAGE_CACHE_MAX = parseInt(process.env.MESSAGE_CACHE_MAX || '2000', 10);
+const messageCaches = new Map(); // sessionId -> Map<messageId, message-proto>
+
+function getCache(sessionId) {
+  let c = messageCaches.get(sessionId);
+  if (!c) { c = new Map(); messageCaches.set(sessionId, c); }
+  return c;
+}
+function cacheMessage(sessionId, messageId, message) {
+  if (!messageId || !message) return;
+  const c = getCache(sessionId);
+  if (c.has(messageId)) c.delete(messageId);   // reset LRU position
+  c.set(messageId, message);
+  // LRU eviction — Map keeps insertion order so the first key is the oldest
+  while (c.size > MESSAGE_CACHE_MAX) {
+    const oldest = c.keys().next().value;
+    if (oldest === undefined) break;
+    c.delete(oldest);
+  }
+}
+
 async function startSession(sessionId, opts = {}) {
   if (sessions.has(sessionId) && sessions.get(sessionId).sock) {
     return sessions.get(sessionId);
@@ -70,6 +96,23 @@ async function startSession(sessionId, opts = {}) {
     browser: ['UnofficialAPI', 'Chrome', '1.0.0'],
     markOnlineOnConnect: false,
     syncFullHistory: false,
+    // Prevents Baileys from crashing on retried messages it can't find
+    // link-preview generation (it hits an external service and often 404s)
+    generateHighQualityLinkPreview: false,
+    // ⇩ THE FIX for "Waiting for this message. This may take a while."
+    // When a recipient's device can't decrypt an outgoing message, WhatsApp
+    // routes a retry receipt back to us. Baileys will then call getMessage()
+    // to fetch the ORIGINAL message content, re-encrypt, and resend.
+    // Without this callback, the retry silently fails and the recipient
+    // stays stuck on the "Waiting for this message" placeholder forever.
+    getMessage: async (key) => {
+      const cache = getCache(sessionId);
+      const cached = cache.get(key.id);
+      if (cached) return cached;
+      // Return an empty placeholder so Baileys' Signal layer doesn't crash;
+      // WhatsApp will simply retry once more later.
+      return { conversation: '' };
+    },
   });
 
   const entry = {
@@ -124,6 +167,7 @@ async function startSession(sessionId, opts = {}) {
         // Purge session dir on logout so a fresh QR can be generated next time
         try { fs.rmSync(sessionPath, { recursive: true, force: true }); } catch (_) {}
         sessions.delete(sessionId);
+        messageCaches.delete(sessionId);
       }
     }
   });
@@ -140,6 +184,10 @@ async function startSession(sessionId, opts = {}) {
       const messageId = msg.key.id;
       const timestamp = Number(msg.messageTimestamp) || Math.floor(Date.now() / 1000);
       const pushName = msg.pushName || null;
+
+      // Cache OWN outgoing messages so getMessage() can serve retry receipts.
+      // (Sends made via /send-text and /send-media are also cached inline right after sendMessage.)
+      if (fromMe) cacheMessage(sessionId, messageId, msg.message);
 
       // Extract text
       let text = '';
@@ -292,6 +340,7 @@ app.delete('/sessions/:id', async (req, res) => {
     try { s.sock.end(); } catch (_) {}
   }
   sessions.delete(sid);
+  messageCaches.delete(sid);
   const p = path.join(SESSIONS_DIR, sid);
   try { fs.rmSync(p, { recursive: true, force: true }); } catch (_) {}
   res.json({ ok: true });
@@ -333,7 +382,10 @@ app.post('/sessions/:id/send-text', async (req, res) => {
   const jid = toJid(to);
   if (!jid || !text) return res.status(400).json({ error: 'to and text required' });
   try {
-    const result = await s.sock.sendMessage(jid, { text });
+    const content = { text };
+    const result = await s.sock.sendMessage(jid, content);
+    // Cache immediately so a retry-receipt within the next few ms is served
+    if (result?.key?.id) cacheMessage(req.params.id, result.key.id, result.message || { conversation: text });
     res.json({ ok: true, messageId: result.key.id, jid });
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -359,6 +411,7 @@ app.post('/sessions/:id/send-media', upload.single('file'), async (req, res) => 
   else return res.status(400).json({ error: 'invalid mediaType' });
   try {
     const result = await s.sock.sendMessage(jid, payload);
+    if (result?.key?.id) cacheMessage(req.params.id, result.key.id, result.message || payload);
     res.json({ ok: true, messageId: result.key.id, jid });
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -376,6 +429,7 @@ app.post('/sessions/:id/broadcast', async (req, res) => {
     if (!jid) { results.push({ to: r, ok: false, error: 'invalid' }); continue; }
     try {
       const out = await s.sock.sendMessage(jid, { text });
+      if (out?.key?.id) cacheMessage(req.params.id, out.key.id, out.message || { conversation: text });
       results.push({ to: r, ok: true, messageId: out.key.id });
       // Simple throttle to avoid ban
       await new Promise((r) => setTimeout(r, 500));
